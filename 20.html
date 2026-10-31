@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<title>VESC DASH</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<style>
+*{box-sizing:border-box}
+:root{--bg:#050505;--panel:#0e0e0e;--line:#262626;--text:#f2efe9;--muted:#7d7a74;--accent:#2f7bff;--on-accent:#000;--ok:#5dd67f;--cut:14px;--bar:64px;--ui:.8;--barh:calc(var(--bar)*var(--ui));--panel2:#171717;--track:#1b1b1b;--seg:#1f1f1f;--chip:#141414;--chip2:#1c1c1c;--ovl:#0a0a0aee;--barbg:#050505f2;--tick:#3c3c3c;--rail:#161616;--mapbg:#111;--glow:color-mix(in srgb,var(--accent) 60%,transparent);--glow2:color-mix(in srgb,var(--accent) 20%,transparent);--glow3:color-mix(in srgb,var(--accent) 8%,transparent);color-scheme:dark;
+ --font:"Bahnschrift","Roboto Condensed","Arial Narrow","Helvetica Neue",Arial,sans-serif}
+html[data-theme=light]{--bg:#ecebe6;--panel:#fff;--line:#d3d0c8;--text:#161616;--muted:#6e6a62;--panel2:#f4f3ee;--track:#dedbd3;--seg:#dad7cf;--chip:#e2dfd7;--chip2:#e2dfd7;--ovl:#fffffff0;--barbg:#f6f5f1f5;--tick:#a9a59c;--rail:#d9d6ce;--mapbg:#ddd;color-scheme:light}
+html,body{height:100%}
+header,.power-rail,main,.controls,#panel,#gps .ov{zoom:var(--ui)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);padding-bottom:calc(var(--barh) + 16px);
+ background-image:radial-gradient(ellipse at 50% 30%,var(--glow3),transparent 60%),repeating-linear-gradient(135deg,color-mix(in srgb,var(--text) 3%,transparent) 0 2px,transparent 2px 6px);background-attachment:fixed}
+body.gpsview{overflow:hidden}
+header{display:flex;justify-content:space-between;align-items:center;padding:16px 22px 12px}
+.logo{font-size:22px;font-weight:700;font-style:italic;letter-spacing:6px}.logo b{color:var(--accent)}
+.status{display:flex;align-items:center;gap:8px;font-size:13px;letter-spacing:2px;color:var(--muted)}
+.dot{width:8px;height:8px;background:var(--accent);transform:skewX(-20deg)}
+.status.on{color:var(--text)}.status.on .dot{background:var(--ok);box-shadow:0 0 10px var(--ok)}
+.power-rail{height:6px;background:var(--rail)}
+#powerFill{height:100%;width:0;background:var(--accent);transition:width .12s;box-shadow:0 0 12px var(--accent)}
+main{display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:14px;max-width:1300px;margin:0 auto;padding:12px 16px}
+.col{display:flex;flex-direction:column;gap:10px;min-width:0}
+.tile{position:relative;background:linear-gradient(100deg,var(--panel2),var(--panel) 60%);padding:14px 16px 12px 20px;flex:1;display:flex;flex-direction:column;justify-content:center;border-left:3px solid var(--accent);
+ clip-path:polygon(0 0,calc(100% - var(--cut)) 0,100% var(--cut),100% 100%,var(--cut) 100%,0 calc(100% - var(--cut)))}
+.k{font-size:12px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+.tile .v{font-size:clamp(28px,3.6vw,44px);font-weight:700;font-style:italic;line-height:1.1;margin-top:4px;font-variant-numeric:tabular-nums}
+.u{font-size:14px;color:var(--muted);font-style:normal;font-weight:400;margin-left:4px}
+.tile.hot .v{color:var(--accent)}
+.gauge{position:relative;display:flex;justify-content:center;padding:4px 0}
+.gauge svg{width:100%;max-width:520px;height:auto;overflow:visible}
+.arc-bg{stroke:var(--track)}
+#arc{stroke:var(--accent);transition:stroke-dashoffset .15s linear,stroke .2s;filter:drop-shadow(0 0 9px var(--glow))}
+#arc.regen{stroke:var(--ok);filter:drop-shadow(0 0 9px #5dd67f99)}
+.ticks line{stroke:var(--tick)}
+.gc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;padding-top:18%}
+.speed{font-size:clamp(88px,15vw,170px);font-weight:700;font-style:italic;line-height:.9;letter-spacing:-4px;font-variant-numeric:tabular-nums;text-shadow:0 0 30px var(--glow2)}
+.su{font-size:15px;letter-spacing:6px;color:var(--muted);margin-top:6px}
+.gs{margin-top:12px;font-size:13px;letter-spacing:2px;color:var(--muted)}.gs b{color:var(--text);font-size:20px;font-style:italic;margin:0 4px 0 10px}.gs b:first-child{margin-left:0}
+.bat{background:var(--panel);padding:12px 16px;clip-path:polygon(0 0,100% 0,100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,0 100%)}
+.bh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.bh .v{font-size:26px;font-weight:700;font-style:italic}
+.segs{display:grid;grid-template-columns:repeat(20,1fr);gap:3px;height:16px}
+.seg{background:var(--seg);transform:skewX(-20deg);transition:background .2s}.seg.on{background:var(--accent)}.low .seg.on{background:#ff1d1d}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mode,button.mb{appearance:none;border:0;cursor:pointer;font-family:var(--font);font-style:italic;font-weight:700;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+.mode{color:var(--muted);background:var(--chip);padding:12px 6px 10px;font-size:18px;letter-spacing:3px;transition:background .15s,color .15s}
+.mode small{display:block;font-size:11px;font-weight:400;letter-spacing:1px;margin-top:3px;font-style:normal}
+.mode.active{background:var(--accent);color:var(--on-accent)}
+#modeStatus{margin:8px 2px 0;min-height:30px;font-size:12px;color:var(--muted);line-height:1.4}
+.controls{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;justify-content:center;gap:8px;padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px));background:var(--barbg);border-top:1px solid var(--line)}
+button.mb{display:inline-flex;align-items:center;justify-content:center;background:var(--accent);color:var(--on-accent);padding:13px 22px;font-size:14px;letter-spacing:3px}
+button.mb.alt{background:var(--chip2);color:var(--text)}button.mb.ic{padding:13px 18px}button.mb svg{display:block}button.mb:disabled{opacity:.5}
+.mode:focus-visible,button.mb:focus-visible,#q:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+html:fullscreen .controls{display:none!important}
+
+/* Page GPS */
+#gps{display:none;position:fixed;inset:0 0 var(--barh) 0;z-index:5;background:var(--mapbg)}
+body.gpsview #gps{display:block}
+html:fullscreen #gps{bottom:0}
+#map{position:absolute;inset:0;background:var(--mapbg)}
+html[data-theme=dark] .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.82) contrast(.92) saturate(.55)}
+.leaflet-control-attribution{background:var(--ovl)!important;color:var(--muted)!important;font-size:10px}.leaflet-control-attribution a{color:var(--text)!important}
+#mapmsg{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;color:var(--muted);z-index:1000;line-height:1.5}
+.ov{position:absolute;z-index:1000}
+.search{left:12px;top:12px;right:12px;max-width:420px;display:flex;gap:6px}
+#q{flex:1;min-width:0;background:var(--ovl);border:1px solid var(--line);border-left:3px solid var(--accent);color:var(--text);font:16px var(--font);padding:11px 12px}
+.search button{padding:0 16px}
+.hud{left:12px;bottom:12px;background:var(--ovl);border-left:3px solid var(--accent);padding:10px 16px 10px 14px;display:flex;gap:18px;align-items:flex-end;
+ clip-path:polygon(0 0,calc(100% - var(--cut)) 0,100% var(--cut),100% 100%,0 100%)}
+.hud .big{font-size:56px;font-weight:700;font-style:italic;line-height:.9;font-variant-numeric:tabular-nums}
+.hud .s{font-size:12px;color:var(--muted);letter-spacing:2px}
+.hud .m{font-size:22px;font-weight:700;font-style:italic}
+#navinfo{right:12px;top:12px;background:var(--ovl);border-left:3px solid #29b6ff;padding:10px 14px;font-size:20px;font-weight:700;font-style:italic;display:flex;gap:12px;align-items:center}
+#navinfo button{background:none;border:0;color:var(--muted);font-size:20px;cursor:pointer}
+#recenter{right:12px;bottom:12px;width:54px;height:54px;background:var(--accent);color:var(--on-accent);border:0;font-size:26px;font-weight:700;cursor:pointer;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+.me svg{width:34px;height:34px;transition:transform .3s;filter:drop-shadow(0 0 6px var(--accent))}
+#panel{position:fixed;right:10px;bottom:calc(var(--bar) + 10px / var(--ui));z-index:20;width:min(300px,calc(100vw - 20px));max-height:calc((100vh - var(--barh) - 20px) / var(--ui));overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 40px #0007}
+.seg2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.seg2 button{appearance:none;border:0;cursor:pointer;background:var(--chip);color:var(--muted);font:italic 700 14px var(--font);letter-spacing:2px;padding:10px}
+.seg2 button.on{background:var(--accent);color:var(--on-accent)}
+.seg2.s3{grid-template-columns:repeat(3,1fr)}
+.sws{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.sw{appearance:none;border:2px solid transparent;aspect-ratio:1;cursor:pointer;transform:skewX(-12deg);padding:0}
+.sw.on{border-color:var(--text)}
+.cp{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);letter-spacing:1px}
+#cpick{width:56px;height:32px;border:0;background:none;padding:0;cursor:pointer}
+.ph{font:italic 700 16px var(--font);letter-spacing:3px}
+.k b{float:right;color:var(--text);letter-spacing:1px}
+#uiRange{width:100%;accent-color:var(--accent)}
+#wheelIn{width:84px;background:var(--chip);border:1px solid var(--line);color:var(--text);font:16px var(--font);padding:8px;text-align:right}
+.hint{font-size:11px;color:var(--muted);line-height:1.4;margin-top:-4px}
+#wheelIn:focus-visible,#uiRange:focus-visible,.sw:focus-visible,.seg2 button:focus-visible,#cpick:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+[hidden]{display:none!important}
+
+@media(max-width:820px){
+ main{grid-template-columns:1fr 1fr;gap:8px;padding:6px 10px}.mid{grid-column:1/-1;grid-row:1}
+ .tile{padding:10px 10px 8px 14px}.tile .v{font-size:26px}header{padding:12px 14px 8px}
+ button.mb{padding:12px 14px;font-size:12px;letter-spacing:2px}
+}
+@media(orientation:landscape) and (max-height:520px){
+ :root{--bar:50px}.controls{padding:6px 10px}button.mb{padding:9px 16px}
+ .hud .big{font-size:44px}
+ .tile{flex:none;padding:8px 10px 7px 14px;--cut:13px}
+ .tile .k{font-size:11px;letter-spacing:1.5px}
+ .tile .v{font-size:24px;margin-top:3px}
+ .tile .u{font-size:12px}
+ #bleState{font-size:19px!important}
+ .col:not(.mid){justify-content:center;gap:8px}
+ /* Paysage : 3 colonnes, tuiles sur les côtés, compteur au centre */
+ main{grid-template-columns:.85fr 2fr .85fr;gap:8px;padding:4px 10px}
+ .mid{grid-column:auto;grid-row:auto;gap:6px}
+ .gauge svg{width:auto;max-width:100%;height:max(160px,calc((100vh - 150px) / var(--ui)))}
+ .speed{font-size:calc(max(160px,(100vh - 150px) / var(--ui)) * .36);letter-spacing:-3px}
+ .gs{margin-top:6px}
+ .bat{padding:6px 12px}
+ .bh{margin-bottom:4px}
+ .bh .v{font-size:18px}
+ .segs{height:9px}
+ .mode{padding:6px 4px 5px;font-size:14px}
+ .mode small{display:none}
+ #modeStatus{display:none}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+ <div class="logo">VESC<b>/</b>DASH</div>
+ <div class="status" id="statusWrap"><span class="dot"></span><span id="status">DÉCONNECTÉ</span></div>
+</header>
+<div class="power-rail"><div id="powerFill"></div></div>
+
+<main id="dash">
+ <section class="col">
+  <div class="tile"><div class="k">Tension</div><div class="v"><span id="voltage">--</span><span class="u">V</span></div></div>
+  <div class="tile"><div class="k">Courant batterie</div><div class="v"><span id="batteryCurrent">--</span><span class="u">A</span></div></div>
+  <div class="tile" id="tempTile"><div class="k">Contrôleur</div><div class="v"><span id="controllerTemp">--</span><span class="u">°C</span></div></div>
+  <div class="tile"><div class="k">Régime</div><div class="v"><span id="rpm">--</span><span class="u">ERPM</span></div></div>
+ </section>
+ <section class="col mid">
+  <div class="gauge">
+   <svg viewBox="0 0 400 340" aria-hidden="true">
+    <path class="arc-bg" d="M 79.8 320.2 A 170 170 0 1 1 320.2 320.2" fill="none" stroke-width="22" pathLength="100"/>
+    <path id="arc" d="M 79.8 320.2 A 170 170 0 1 1 320.2 320.2" fill="none" stroke-width="22" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/>
+    <g class="ticks" id="ticks"></g>
+   </svg>
+   <div class="gc"><div class="speed" id="speed">0</div><div class="su" id="srcLabel">KM/H</div>
+    <div class="gs"><b id="power">--</b>kW<b id="maxk">0</b>max</div></div>
+  </div>
+  <div class="bat" id="bat">
+   <div class="bh"><span class="k">Batterie estimée</span><span class="v"><span id="batteryPercent">--</span><span class="u"> %</span></span></div>
+   <div class="segs" id="segs"></div>
+  </div>
+  <div>
+   <div class="modes">
+    <button class="mode active" data-mode="eco">ECO<small>15 A</small></button>
+    <button class="mode" data-mode="sport">SPORT<small>30 A</small></button>
+    <button class="mode" data-mode="race">RACE<small>50 A</small></button>
+   </div>
+   <div id="modeStatus"></div>
+  </div>
+ </section>
+ <section class="col">
+  <div class="tile"><div class="k">Trajet</div><div class="v"><span id="trip">0.0</span><span class="u">km</span></div></div>
+  <div class="tile"><div class="k">Courant moteur</div><div class="v"><span id="motorCurrent">--</span><span class="u">A</span></div></div>
+  <div class="tile"><div class="k">Duty cycle</div><div class="v"><span id="duty">--</span><span class="u">%</span></div></div>
+  <div class="tile"><div class="k">Liaison BLE</div><div class="v" id="bleState" style="font-size:26px">OFFLINE</div></div>
+ </section>
+</main>
+
+<section id="gps" aria-label="Carte GPS">
+ <div id="map"></div>
+ <div id="mapmsg">Carte indisponible : connexion internet requise pour charger OpenStreetMap.</div>
+ <form class="ov search" id="sform"><input id="q" type="search" placeholder="Destination" enterkeyhint="search" autocomplete="off"><button class="mb">GO</button></form>
+ <div class="ov" id="navinfo" hidden><span id="navtxt"></span><button id="navclear" aria-label="Effacer l'itinéraire">✕</button></div>
+ <div class="ov hud"><div><div class="big" id="gSpeed">0</div><div class="s">KM/H</div></div>
+  <div><div class="m" id="gBat">--%</div><div class="s">BATT</div></div>
+  <div><div class="m" id="gPow">--</div><div class="s">KW</div></div>
+  <div><div class="m" id="gMode">ECO</div><div class="s">MODE</div></div></div>
+ <button class="ov" id="recenter" hidden aria-label="Recentrer">⌖</button>
+</section>
+
+<div id="panel" hidden role="dialog" aria-label="Paramètres">
+ <div class="ph">PARAMÈTRES</div>
+ <div class="k">Thème</div>
+ <div class="seg2"><button data-th="dark">SOMBRE</button><button data-th="light">CLAIR</button></div>
+ <div class="k">Couleur principale</div>
+ <div class="sws" id="sws"></div>
+ <label class="cp">Personnalisée <input type="color" id="cpick" value="#2f7bff"></label>
+ <div class="k">Taille de l'interface <b id="uiVal">80%</b></div>
+ <input type="range" id="uiRange" min="60" max="120" step="5" value="80" aria-label="Taille de l'interface">
+ <div class="k">Source de la vitesse</div>
+ <div class="seg2 s3"><button data-src="auto">AUTO</button><button data-src="vesc">VESC</button><button data-src="gps">GPS</button></div>
+ <div class="hint">AUTO : VESC si connecté, sinon GPS. Le GPS demande l'autorisation de localisation.</div>
+ <label class="cp">Taille de roue (pouces) <input type="number" id="wheelIn" min="6" max="30" step="any" value="10" inputmode="decimal"></label>
+ <div class="hint">Diamètre de la roue en pouces, pneu compris (10 pouces = 25,4 cm).</div>
+ <button class="mb alt" id="resetSet" style="align-self:flex-start;padding:10px 16px;font-size:12px">RÉINITIALISER</button>
+</div>
+
+<div class="controls" id="controls">
+ <button class="mb" id="connect">CONNECTER</button>
+ <button class="mb alt" id="viewBtn">GPS</button>
+ <button class="mb alt" id="demo">DÉMO</button>
+ <button class="mb alt ic" id="styleBtn" aria-label="Paramètres"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="3.5"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></button>
+ <button class="mb alt ic" id="fullscreen" aria-label="Plein écran"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg></button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+const $=id=>document.getElementById(id),Q=s=>document.querySelectorAll(s);
+const SERVICE_UUID="6e400001-b5a3-f393-e0a9-e50e24dcca9e",RX_UUID="6e400002-b5a3-f393-e0a9-e50e24dcca9e",TX_UUID="6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+let device=null,txCharacteristic=null,rxCharacteristic=null,pollTimer=null,buffer=[],demoTimer=null,live=false,wl=null;
+
+/* Paires de pôles et réduction : à ajuster ici. Le diamètre de roue se règle dans Paramètres. */
+const POLE_PAIRS=7,GEAR_RATIO=1;
+
+const profiles={eco:{name:"ECO",motorCurrent:20,batteryCurrent:10},sport:{name:"SPORT",motorCurrent:40,batteryCurrent:20},race:{name:"RACE",motorCurrent:50,batteryCurrent:40}};
+let currentMode="eco";
+
+/* Thème et couleur principale */
+const SWATCHES=["#2f7bff","#ff4d00","#ff2d4f","#ffc400","#5dd67f","#29b6ff","#b455ff","#ff5fa2"];
+const DEFAULTS={accent:"#2f7bff",themeMode:"dark",uiPct:80,wheelIn:10,speedSrc:"auto"};
+let accent=DEFAULTS.accent,themeMode=DEFAULTS.themeMode,uiPct=DEFAULTS.uiPct,wheelIn=DEFAULTS.wheelIn,speedSrc=DEFAULTS.speedSrc;
+try{const t=JSON.parse(localStorage.getItem("vescSettings")||"{}");if(/^#[0-9a-f]{6}$/i.test(t.accent))accent=t.accent;if(t.themeMode==="light")themeMode="light";if(t.uiPct>=60&&t.uiPct<=120)uiPct=t.uiPct;if(t.wheelIn>=6&&t.wheelIn<=30)wheelIn=t.wheelIn;if(["auto","vesc","gps"].includes(t.speedSrc))speedSrc=t.speedSrc}catch(e){}
+const lin=c=>{c/=255;return c<=.03928?c/12.92:Math.pow((c+.055)/1.055,2.4)};
+function onColor(h){const n=parseInt(h.slice(1),16),L=.2126*lin(n>>16)+.7152*lin((n>>8)&255)+.0722*lin(n&255);return(L+.05)/.05>=1.05/(L+.05)?"#000":"#fff"}
+function applyTheme(save){
+ const R=document.documentElement;R.dataset.theme=themeMode;
+ R.style.setProperty("--accent",accent);R.style.setProperty("--ui",uiPct/100);R.style.setProperty("--on-accent",onColor(accent));
+ document.querySelector("meta[name=theme-color]").content=themeMode==="light"?"#ecebe6":"#050505";
+ Q("[data-th]").forEach(b=>b.classList.toggle("on",b.dataset.th===themeMode));
+ Q(".sw").forEach(b=>b.classList.toggle("on",b.dataset.c===accent.toLowerCase()));
+ $("cpick").value=accent;$("uiRange").value=uiPct;$("uiVal").textContent=uiPct+"%";
+ Q("[data-src]").forEach(b=>b.classList.toggle("on",b.dataset.src===speedSrc));
+ if(speedSrc==="gps")startGps();
+ showSpeed();
+ if(document.activeElement!==$("wheelIn"))$("wheelIn").value=wheelIn;
+ map&&map.invalidateSize();
+ trail&&trail.setStyle({color:accent});destMk&&destMk.setStyle({fillColor:accent});
+ if(save)try{localStorage.setItem("vescSettings",JSON.stringify({themeMode,accent,uiPct,wheelIn,speedSrc}))}catch(e){}
+}
+SWATCHES.forEach(c=>{const b=document.createElement("button");b.className="sw";b.dataset.c=c;b.style.background=c;b.setAttribute("aria-label","Couleur "+c);
+ b.onclick=()=>{accent=c;applyTheme(true)};$("sws").appendChild(b)});
+Q("[data-th]").forEach(b=>b.onclick=()=>{themeMode=b.dataset.th;applyTheme(true)});
+$("cpick").addEventListener("input",e=>{accent=e.target.value.toLowerCase();applyTheme(true)});
+$("uiRange").addEventListener("input",e=>{uiPct=+e.target.value;applyTheme(true)});
+$("wheelIn").addEventListener("input",e=>{const v=parseFloat(String(e.target.value).replace(",","."));if(v>=6&&v<=30){wheelIn=v;applyTheme(true)}});
+$("resetSet").addEventListener("click",()=>{({accent,themeMode,uiPct,wheelIn,speedSrc}=DEFAULTS);applyTheme(true)});
+Q("[data-src]").forEach(b=>b.onclick=()=>{speedSrc=b.dataset.src;applyTheme(true)});
+$("styleBtn").addEventListener("click",e=>{e.stopPropagation();$("panel").hidden=!$("panel").hidden});
+document.addEventListener("click",e=>{if(!$("panel").hidden&&!e.target.closest("#panel"))$("panel").hidden=true});
+
+/* Éléments graphiques */
+for(let i=0;i<20;i++){const s=document.createElement("div");s.className="seg";$("segs").appendChild(s)}
+for(let i=0;i<=20;i++){
+ const a=(135+i*13.5)*Math.PI/180,r=i%5?197:206,l=document.createElementNS("http://www.w3.org/2000/svg","line");
+ l.setAttribute("x1",200+190*Math.cos(a));l.setAttribute("y1",200+190*Math.sin(a));
+ l.setAttribute("x2",200+r*Math.cos(a));l.setAttribute("y2",200+r*Math.sin(a));
+ l.setAttribute("stroke-width",i%5?1.5:3);$("ticks").appendChild(l);
+}
+/* Balayage de démarrage */
+(()=>{const a=$("arc");a.style.transition="stroke-dashoffset .8s ease";a.setAttribute("stroke-dashoffset",0);
+ setTimeout(()=>a.setAttribute("stroke-dashoffset",100),900);setTimeout(()=>a.style.transition="",1800)})();
+
+function chooseMode(name){
+ const p=profiles[name];if(!p)return;currentMode=name;
+ Q(".mode").forEach(b=>b.classList.toggle("active",b.dataset.mode===name));
+ $("modeStatus").textContent=`Mode ${p.name} : cible ${p.motorCurrent} A moteur et ${p.batteryCurrent} A batterie. Le contrôleur n'est pas modifié.`;
+ $("gMode").textContent=p.name;
+}
+Q(".mode").forEach(b=>b.addEventListener("click",()=>chooseMode(b.dataset.mode)));chooseMode("eco");
+
+function setStatus(s,on=false){
+ $("status").textContent=s;$("statusWrap").classList.toggle("on",on);
+ $("bleState").textContent=on?"ONLINE":"OFFLINE";$("bleState").style.color=on?"var(--ok)":"var(--accent)";
+}
+async function keepAwake(){try{wl=await navigator.wakeLock?.request("screen")}catch(e){}}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&live)keepAwake()});
+
+/* Protocole VESC */
+function crc16(data){let crc=0;for(const b of data){crc^=b<<8;for(let i=0;i<8;i++)crc=(crc&0x8000)?((crc<<1)^0x1021):(crc<<1);crc&=0xffff}return crc}
+function makePacket(c){const p=new Uint8Array([c]),crc=crc16(p);return new Uint8Array([2,p.length,...p,(crc>>8)&255,crc&255,3])}
+async function sendCommand(c){
+ if(!txCharacteristic)return;const pk=makePacket(c);
+ if(txCharacteristic.writeValueWithoutResponse)await txCharacteristic.writeValueWithoutResponse(pk);else await txCharacteristic.writeValue(pk);
+}
+const u16=(d,o)=>(d[o]<<8)|d[o+1],s16=(d,o)=>{const n=u16(d,o);return n>32767?n-65536:n};
+const s32=(d,o)=>{const n=d[o]*16777216+(d[o+1]<<16)+(d[o+2]<<8)+d[o+3];return n>2147483647?n-4294967296:n};
+
+/* Vitesse, trajet */
+let trip=0,maxK=0,lastT=0,gpsKmh=null,bleKmh=0;
+function tick(k){
+ const n=performance.now();if(lastT)trip+=k*Math.min(n-lastT,2000)/3600000;lastT=n;
+ maxK=Math.max(maxK,k);$("trip").textContent=trip.toFixed(1);$("maxk").textContent=Math.round(maxK);
+}
+function showSpeed(){
+ const useGps=speedSrc==="gps"||(speedSrc==="auto"&&!live);
+ const k=useGps?(gpsKmh||0):bleKmh;tick(k);
+ $("speed").textContent=Math.round(k);$("gSpeed").textContent=Math.round(k);
+ $("srcLabel").textContent="KM/H · "+(useGps?"GPS":"VESC");
+}
+
+function render({temp,mc,bc,duty,rpm,volts}){
+ const set=(id,t)=>$(id).textContent=t;
+ set("controllerTemp",temp.toFixed(1));set("motorCurrent",mc.toFixed(1));set("batteryCurrent",bc.toFixed(1));
+ set("rpm",Math.round(rpm).toLocaleString("fr-FR"));set("voltage",volts.toFixed(1));set("duty",duty.toFixed(1));
+ const kw=volts*bc/1000;set("power",kw.toFixed(2));set("gPow",kw.toFixed(1));
+ bleKmh=Math.abs(rpm)/POLE_PAIRS/GEAR_RATIO*Math.PI*(wheelIn*0.0254)*60/1000;showSpeed();
+ const pct=Math.max(0,Math.min(100,(volts-39)/(58.8-39)*100));
+ set("batteryPercent",Math.round(pct));set("gBat",Math.round(pct)+"%");
+ const on=Math.round(pct/5);Q(".seg").forEach((s,i)=>s.classList.toggle("on",i<on));$("bat").classList.toggle("low",pct<20);
+ const lim=profiles[currentMode].motorCurrent||50;
+ $("arc").setAttribute("stroke-dashoffset",(100-Math.min(100,Math.abs(mc)/lim*100)).toFixed(1));
+ $("arc").classList.toggle("regen",bc<-0.5);
+ $("powerFill").style.width=Math.min(100,Math.abs(mc)/50*100)+"%";
+ $("tempTile").classList.toggle("hot",temp>=70);
+}
+function parsePayload(d){
+ if(d.length<29||d[0]!==4)return;
+ render({temp:s16(d,1)/10,mc:s32(d,5)/100,bc:s32(d,9)/100,duty:s16(d,21)/10,rpm:s32(d,23),volts:u16(d,27)/10});
+}
+function processBuffer(){
+ while(buffer.length>=2){
+  const i=buffer.findIndex(x=>x===2||x===3);
+  if(i<0){buffer=[];return}if(i>0)buffer.splice(0,i);
+  if(buffer[0]===2){
+   const len=buffer[1],total=len+5;if(buffer.length<total)return;
+   const f=buffer.slice(0,total),p=f.slice(2,2+len),crc=(f[2+len]<<8)|f[3+len];
+   if(f[total-1]===3&&crc16(p)===crc)parsePayload(p);buffer.splice(0,total);
+  }else{
+   if(buffer.length<3)return;
+   const len=(buffer[1]<<8)|buffer[2],total=len+6;if(buffer.length<total)return;
+   const f=buffer.slice(0,total),p=f.slice(3,3+len),crc=(f[3+len]<<8)|f[4+len];
+   if(f[total-1]===3&&crc16(p)===crc)parsePayload(p);buffer.splice(0,total);
+  }
+ }
+}
+function notification(e){
+ const v=e.target.value;buffer.push(...new Uint8Array(v.buffer,v.byteOffset,v.byteLength));
+ if(buffer.length>4096)buffer=buffer.slice(-1024);processBuffer();
+}
+
+/* Bluetooth */
+async function connectVesc(){
+ if(!navigator.bluetooth){alert("Bluetooth BLE non disponible (Chrome/Edge, en HTTPS ou localhost).");return}
+ stopDemo();
+ try{
+  $("connect").disabled=true;setStatus("RECHERCHE...");
+  device=await navigator.bluetooth.requestDevice({filters:[{services:[SERVICE_UUID]}]});
+  device.addEventListener("gattserverdisconnected",disconnected);
+  const server=await device.gatt.connect(),service=await server.getPrimaryService(SERVICE_UUID);
+  txCharacteristic=await service.getCharacteristic(RX_UUID);rxCharacteristic=await service.getCharacteristic(TX_UUID);
+  await rxCharacteristic.startNotifications();rxCharacteristic.addEventListener("characteristicvaluechanged",notification);
+  buffer=[];live=true;setStatus("CONNECTÉ",true);keepAwake();
+  $("connect").textContent="DÉCONNECTER";$("connect").disabled=false;
+  await sendCommand(4);clearInterval(pollTimer);pollTimer=setInterval(()=>sendCommand(4).catch(console.error),500);
+ }catch(e){console.error(e);live=false;setStatus("ERREUR BLE");$("connect").textContent="CONNECTER";$("connect").disabled=false}
+}
+function disconnected(){
+ clearInterval(pollTimer);pollTimer=null;txCharacteristic=rxCharacteristic=null;buffer=[];live=false;bleKmh=0;showSpeed();
+ wl?.release?.().catch(()=>{});setStatus("DÉCONNECTÉ");$("connect").textContent="CONNECTER";$("connect").disabled=false;
+}
+function disconnectVesc(){clearInterval(pollTimer);pollTimer=null;if(device?.gatt?.connected)device.gatt.disconnect();else disconnected()}
+$("connect").addEventListener("click",()=>device?.gatt?.connected?disconnectVesc():connectVesc());
+
+/* Démo */
+function stopDemo(){
+ if(!demoTimer)return;clearInterval(demoTimer);demoTimer=null;live=false;bleKmh=0;showSpeed();
+ $("demo").textContent="DÉMO";if(!device?.gatt?.connected)setStatus("DÉCONNECTÉ");
+}
+$("demo").addEventListener("click",()=>{
+ if(demoTimer){stopDemo();return}if(device?.gatt?.connected)return;
+ let t=0;live=true;keepAwake();$("demo").textContent="STOP DÉMO";setStatus("DÉMO",true);
+ demoTimer=setInterval(()=>{
+  t+=.05;const th=Math.sin(t)*.5+.5,mc=(Math.sin(t)>-.2?th:-.15)*profiles[currentMode].motorCurrent;
+  render({temp:38+th*20,mc,bc:mc*.45,duty:th*70,rpm:Math.max(0,th)*7500+300,volts:54-th*3});
+ },100);
+});
+
+/* Plein écran */
+$("fullscreen").addEventListener("click",async()=>{
+ try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch(e){console.error(e)}
+});
+
+/* ---------- Page GPS (OpenStreetMap) ---------- */
+let map,me,trail,routeLayer,destMk,follow=true,lastPos=null,watchId=null;
+function initMap(){
+ if(map)return;
+ if(!window.L){$("mapmsg").style.display="flex";return}
+ map=L.map("map",{zoomControl:false}).setView([46.6,2.4],6);
+ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);
+ trail=L.polyline([],{color:accent,weight:4,opacity:.9}).addTo(map);
+ map.on("dragstart",()=>{follow=false;$("recenter").hidden=false});
+ if(lastPos)onGps({coords:{latitude:lastPos[0],longitude:lastPos[1],speed:gpsKmh==null?null:gpsKmh/3.6,heading:null,accuracy:5}});
+}
+function startGps(){
+ if(watchId!==null||!navigator.geolocation)return;
+ watchId=navigator.geolocation.watchPosition(onGps,e=>{console.error(e);$("srcLabel").textContent="KM/H · GPS OFF"},{enableHighAccuracy:true,maximumAge:1000,timeout:15000});
+}
+function onGps(p){
+ const c=p.coords,ll=[c.latitude,c.longitude];lastPos=ll;
+ gpsKmh=c.speed!=null?Math.max(0,c.speed*3.6):gpsKmh;
+ showSpeed();
+ if(!map)return;
+ if(!me){
+  me=L.marker(ll,{icon:L.divIcon({className:"me",iconSize:[34,34],iconAnchor:[17,17],
+   html:'<svg viewBox="0 0 24 24"><path d="M12 2l8 19-8-5-8 5z" style="fill:var(--accent)" stroke="#fff" stroke-width="1.5"/></svg>'}),interactive:false,zIndexOffset:1000}).addTo(map);
+  map.setView(ll,16);
+ }else me.setLatLng(ll);
+ if(c.heading!=null&&!isNaN(c.heading))me.getElement().firstChild.style.transform=`rotate(${c.heading}deg)`;
+ if(c.accuracy<50)trail.addLatLng(ll);
+ if(follow)map.panTo(ll,{animate:true});
+}
+$("recenter").addEventListener("click",()=>{follow=true;$("recenter").hidden=true;if(lastPos&&map)map.setView(lastPos,Math.max(map.getZoom(),16))});
+
+/* Recherche + itinéraire (Nominatim + OSRM) */
+function navMsg(t){$("navtxt").textContent=t;$("navinfo").hidden=!t}
+function clearRoute(){[routeLayer,destMk].forEach(l=>l&&map.removeLayer(l));routeLayer=destMk=null;navMsg("")}
+$("navclear").addEventListener("click",()=>{if(map)clearRoute()});
+$("sform").addEventListener("submit",async e=>{
+ e.preventDefault();const q=$("q").value.trim();if(!q||!map)return;navMsg("Recherche…");
+ try{
+  const r=await(await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&q="+encodeURIComponent(q))).json();
+  if(!r[0]){navMsg("Adresse introuvable");return}
+  clearRoute();const d=[+r[0].lat,+r[0].lon];
+  destMk=L.circleMarker(d,{radius:9,color:"#fff",weight:3,fillColor:accent,fillOpacity:1}).addTo(map);follow=false;$("recenter").hidden=false;
+  if(!lastPos){map.setView(d,14);navMsg("Position GPS en attente");return}
+  const j=await(await fetch(`https://router.project-osrm.org/route/v1/driving/${lastPos[1]},${lastPos[0]};${d[1]},${d[0]}?overview=full&geometries=geojson`)).json();
+  const rt=j.routes&&j.routes[0];if(!rt){map.setView(d,14);navMsg("Pas d'itinéraire");return}
+  routeLayer=L.geoJSON(rt.geometry,{style:{color:"#00d1a0",weight:6,opacity:.9}}).addTo(map);
+  map.fitBounds(routeLayer.getBounds(),{padding:[50,50]});
+  const m=Math.round(rt.duration/60);navMsg(`${(rt.distance/1000).toFixed(1)} km · ${m>=60?Math.floor(m/60)+" h "+String(m%60).padStart(2,"0"):m+" min"}`);
+ }catch(err){console.error(err);navMsg("Réseau indisponible")}
+});
+
+/* Bascule des pages : bouton ou rotation du téléphone en paysage */
+function showView(v){
+ const g=v==="gps";document.body.classList.toggle("gpsview",g);$("viewBtn").textContent=g?"DASH":"GPS";
+ if(g){initMap();startGps();setTimeout(()=>map&&map.invalidateSize(),50)}
+}
+$("viewBtn").addEventListener("click",()=>showView(document.body.classList.contains("gpsview")?"dash":"gps"));
+const mq=matchMedia("(orientation:landscape) and (max-height:520px)");
+mq.addEventListener("change",e=>showView(e.matches?"gps":"dash"));
+if(mq.matches)showView("gps");
+addEventListener("resize",()=>map&&map.invalidateSize());
+document.addEventListener("fullscreenchange",()=>setTimeout(()=>map&&map.invalidateSize(),100));
+applyTheme(false);
+</script>
+</body>
+</html>
