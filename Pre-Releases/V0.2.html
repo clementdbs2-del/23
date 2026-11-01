@@ -1,0 +1,377 @@
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#101110">
+<title>VARG // VESC Dashboard</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg:#101110;
+  --panel:#1b1d1b;
+  --muted:#8c928c;
+  --green:#b6f34a;
+  --red:#ff5c5c;
+}
+* { box-sizing:border-box }
+body {
+  margin:0;
+  background:var(--bg);
+  color:#f4f5f1;
+  font-family:Arial,sans-serif;
+  min-height:100vh;
+}
+main {
+  max-width:1100px;
+  margin:auto;
+  padding:14px 22px;
+}
+header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-bottom:1px solid #343634;
+  padding-bottom:12px;
+}
+.brand {
+  font-size:12px;
+  letter-spacing:3px;
+  color:var(--green);
+  font-weight:bold;
+}
+#status { font-size:11px;color:var(--muted) }
+#status.ok { color:var(--green) }
+.dashboard {
+  display:grid;
+  grid-template-columns:1.15fr 1fr;
+  gap:14px;
+  margin-top:14px;
+}
+.panel {
+  background:var(--panel);
+  border-radius:16px;
+  padding:20px;
+}
+.label {
+  font-size:10px;
+  color:var(--muted);
+  letter-spacing:1.5px;
+}
+.speed {
+  font-size:clamp(70px,13vh,120px);
+  font-weight:800;
+  letter-spacing:-5px;
+  line-height:1;
+  margin:20px 0 5px;
+}
+.unit { color:var(--muted);font-size:13px }
+.battery-number {
+  font-size:clamp(45px,8vh,75px);
+  font-weight:800;
+  margin:12px 0 4px;
+}
+.bar {
+  height:9px;
+  background:#393c37;
+  border-radius:9px;
+  margin-top:14px;
+  overflow:hidden;
+}
+#batterybar {
+  height:100%;
+  width:0%;
+  background:var(--green);
+  transition:width .3s;
+}
+.grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:10px;
+}
+.tile {
+  background:var(--panel);
+  border-radius:12px;
+  padding:15px;
+  min-width:0;
+}
+.value {
+  font-size:clamp(20px,4vh,30px);
+  font-weight:700;
+  margin-top:12px;
+  overflow-wrap:anywhere;
+}
+.value small {
+  font-size:11px;
+  color:var(--muted);
+  font-weight:400;
+}
+button {
+  padding:15px;
+  border:0;
+  border-radius:10px;
+  background:var(--green);
+  color:#111;
+  font-size:13px;
+  font-weight:bold;
+  margin-top:14px;
+  width:100%;
+}
+button:disabled { opacity:.5 }
+.note {
+  font-size:11px;
+  color:var(--muted);
+  line-height:1.5;
+  margin-top:10px;
+}
+@media (orientation:portrait) {
+  .dashboard { grid-template-columns:1fr }
+  main { padding:12px }
+}
+@media (max-height:450px) and (orientation:landscape) {
+  main { padding:8px 18px }
+  header { padding-bottom:6px }
+  .dashboard { margin-top:8px;gap:8px }
+  .panel { padding:12px }
+  .grid { gap:6px;margin-top:6px }
+  .tile { padding:9px }
+  .value { margin-top:5px }
+  .speed { margin:10px 0 3px }
+  .battery-number { margin:6px 0 3px }
+  button { margin-top:8px;padding:10px }
+  .note { margin-top:5px }
+}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="brand">VARG // VESC</div>
+  <div id="status">DÉCONNECTÉ</div>
+</header>
+
+<div class="dashboard">
+  <section>
+    <div class="panel">
+      <div class="label">VITESSE</div>
+      <div class="speed">0</div>
+      <div class="unit">km/h</div>
+    </div>
+
+    <div class="panel" style="margin-top:10px">
+      <div class="label">BATTERIE · TENSION</div>
+      <div class="battery-number" id="voltageMain">--<span class="unit"> V</span></div>
+      <div class="unit">Plage d'affichage : 39–58 V</div>
+      <div class="bar"><div id="batterybar"></div></div>
+      <div class="unit" id="batteryPercent" style="margin-top:8px">-- % de la plage</div>
+    </div>
+
+    <button id="connect">CONNECTER LE VESC</button>
+    <button id="fullscreen" style="background:#292c28;color:white;margin-top:8px">
+      PLEIN ÉCRAN
+    </button>
+  </section>
+
+  <section>
+    <div class="grid" style="margin-top:0">
+      <div class="tile">
+        <div class="label">COURANT BATTERIE</div>
+        <div class="value" id="current">-- <small>A</small></div>
+      </div>
+      <div class="tile">
+        <div class="label">PUISSANCE ÉLECTRIQUE</div>
+        <div class="value" id="power">-- <small>kW</small></div>
+      </div>
+      <div class="tile">
+        <div class="label">RÉGIME MOTEUR</div>
+        <div class="value" id="rpm">-- <small>ERPM</small></div>
+      </div>
+      <div class="tile">
+        <div class="label">TEMPÉRATURE ESC</div>
+        <div class="value" id="fet">-- <small>°C</small></div>
+      </div>
+      <div class="tile">
+        <div class="label">COURANT MOTEUR</div>
+        <div class="value" id="motorCurrent">-- <small>A</small></div>
+      </div>
+      <div class="tile">
+        <div class="label">DUTY CYCLE</div>
+        <div class="value" id="duty">-- <small>%</small></div>
+      </div>
+    </div>
+    <div class="note" id="message">
+      Télémétrie en lecture seule. La vitesse est volontairement fixée à zéro.
+    </div>
+  </section>
+</div>
+</main>
+
+<script>
+"use strict";
+
+const SERVICE="6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+const RX="6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+const TX="6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+
+const $=id=>document.getElementById(id);
+let device,server,writer,connected=false,timer=null;
+let buffer=new Uint8Array(0),busy=false,lastData=0;
+
+function status(s,ok=false){
+  $("status").textContent=s;
+  $("status").className=ok?"ok":"";
+}
+function i16(a,p){
+  let n=(a[p]<<8)|a[p+1];
+  return n&0x8000?n-0x10000:n;
+}
+function i32(a,p){
+  return (a[p]<<24)|(a[p+1]<<16)|(a[p+2]<<8)|a[p+3];
+}
+function crc16(data){
+  let crc=0;
+  for(const b of data){
+    crc^=b<<8;
+    for(let i=0;i<8;i++)
+      crc=(crc&0x8000)?((crc<<1)^0x1021):(crc<<1);
+    crc&=65535;
+  }
+  return crc;
+}
+function packet(payload){
+  const out=new Uint8Array(payload.length+5);
+  out[0]=2;out[1]=payload.length;
+  out.set(payload,2);
+  const crc=crc16(payload);
+  out[out.length-3]=crc>>8;
+  out[out.length-2]=crc&255;
+  out[out.length-1]=3;
+  return out;
+}
+function set(id,v){$(id).textContent=v;}
+
+function parseFrame(f){
+  if(f.length<6||f[0]!==2)return;
+  const len=f[1];
+  if(f.length!==len+5)return;
+  const payload=f.slice(2,2+len);
+  if(crc16(payload)!==((f[2+len]<<8)|f[3+len]))return;
+  if(f[4+len]!==3||payload[0]!==4)return;
+
+  const d=payload.slice(1);
+  if(d.length<28)return;
+
+  const fet=i16(d,0)/10;
+  const motorCurrent=i32(d,4)/100;
+  const current=i32(d,8)/100;
+  const duty=i16(d,20)/10;
+  const rpm=i32(d,22);
+  const voltage=i16(d,26)/10;
+
+  if(![fet,motorCurrent,current,duty,rpm,voltage].every(Number.isFinite))return;
+
+  // La plage de tension est bornée à 39–58 V.
+  // Une valeur hors plage reste affichée, mais la jauge est bornée.
+  set("voltageMain",voltage.toFixed(1)+" V");
+  const percent=Math.max(0,Math.min(100,(voltage-39)/(58-39)*100));
+  $("batterybar").style.width=percent+"%";
+  set("batteryPercent",percent.toFixed(0)+" % de la plage 39–58 V");
+  set("current",current.toFixed(1)+" A");
+  set("power",(voltage*current/1000).toFixed(2)+" kW");
+  set("rpm",rpm.toLocaleString("fr-FR")+" ERPM");
+  set("fet",fet.toFixed(1)+" °C");
+  set("motorCurrent",motorCurrent.toFixed(1)+" A");
+  set("duty",duty.toFixed(1)+" %");
+
+  lastData=Date.now();
+  status("CONNECTÉ · DONNÉES REÇUES",true);
+}
+
+function receive(chunk){
+  const merged=new Uint8Array(buffer.length+chunk.length);
+  merged.set(buffer);merged.set(chunk,buffer.length);buffer=merged;
+  while(buffer.length>=2){
+    const start=buffer.indexOf(2);
+    if(start<0){buffer=new Uint8Array(0);return;}
+    if(start>0)buffer=buffer.slice(start);
+    if(buffer.length<2)return;
+    const len=buffer[1],total=len+5;
+    if(len<1||len>255){buffer=buffer.slice(1);continue;}
+    if(buffer.length<total)return;
+    parseFrame(buffer.slice(0,total));
+    buffer=buffer.slice(total);
+  }
+}
+
+async function disconnect(){
+  connected=false;clearInterval(timer);timer=null;writer=null;
+  if(device?.gatt?.connected)device.gatt.disconnect();
+  status("DÉCONNECTÉ");
+  $("connect").textContent="CONNECTER LE VESC";
+  $("connect").disabled=false;
+}
+
+async function connect(){
+  if(!navigator.bluetooth){
+    $("message").textContent="Bluetooth Web indisponible. Utilise Chrome Android et HTTPS.";
+    return;
+  }
+  $("connect").disabled=true;
+  try{
+    device=await navigator.bluetooth.requestDevice({
+      filters:[{services:[SERVICE]}]
+    });
+    device.addEventListener("gattserverdisconnected",()=>{
+      connected=false;clearInterval(timer);
+      status("CONNEXION PERDUE");
+      $("connect").textContent="RECONNECTER";
+      $("connect").disabled=false;
+    });
+    server=await device.gatt.connect();
+    const service=await server.getPrimaryService(SERVICE);
+    writer=await service.getCharacteristic(RX);
+    const tx=await service.getCharacteristic(TX);
+    await tx.startNotifications();
+    tx.addEventListener("characteristicvaluechanged",e=>{
+      const v=e.target.value;
+      receive(new Uint8Array(v.buffer,v.byteOffset,v.byteLength));
+    });
+    connected=true;buffer=new Uint8Array(0);lastData=Date.now();
+    status("CONNECTÉ",true);
+    $("message").textContent="Connexion établie. Lecture seule.";
+    $("connect").textContent="DÉCONNECTER";
+    $("connect").disabled=false;
+    timer=setInterval(async()=>{
+      if(!connected||busy||!writer)return;
+      if(Date.now()-lastData>5000)status("PAS DE DONNÉES");
+      busy=true;
+      try{
+        await writer.writeValueWithoutResponse(packet(new Uint8Array([4])));
+      }catch(e){
+        $("message").textContent="Erreur de lecture : "+e.message;
+      }finally{busy=false;}
+    },500);
+  }catch(e){
+    status("ÉCHEC CONNEXION");
+    $("message").textContent="Connexion impossible : "+e.message;
+    $("connect").disabled=false;
+  }
+}
+
+$("connect").addEventListener("click",()=>connected?disconnect():connect());
+
+$("fullscreen").addEventListener("click",async()=>{
+  try{
+    if(!document.fullscreenElement)await document.documentElement.requestFullscreen();
+    else await document.exitFullscreen();
+  }catch(e){
+    $("message").textContent="Le plein écran doit être activé depuis un navigateur compatible.";
+  }
+});
+
+screen.orientation?.lock?.("landscape").catch(()=>{});
+</script>
+</body>
+</html>

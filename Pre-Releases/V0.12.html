@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101010">
+<title>VESC DASH</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#101010;--panel:#191919;--border:#303030;--orange:#b6f34a;--muted:#999}
+body{margin:0;padding-bottom:90px;background:var(--bg);color:#fff;font-family:Arial,sans-serif}
+header{padding:18px 20px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:22px;font-weight:900;letter-spacing:2px}
+.status{font-size:12px;color:var(--muted)}
+.top-power{height:8px;background:#383838}
+#powerFill{height:100%;width:0;background:var(--orange);transition:width .12s}
+main{padding:14px;display:grid;grid-template-columns:1fr 1.25fr 1fr;gap:12px;max-width:1400px;margin:auto}
+.column{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;min-width:0}
+.label{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.value{font-size:clamp(22px,3vw,34px);font-weight:800;overflow-wrap:anywhere}
+.unit{font-size:13px;color:var(--muted);font-weight:500}
+.center-column{justify-content:center}
+.speed-card{text-align:center;padding:28px 12px}
+.speed{font-size:clamp(58px,10vw,110px);font-weight:900;line-height:1;letter-spacing:-4px}
+.speed-unit{color:var(--muted);font-size:15px;letter-spacing:3px;margin-top:10px}
+.battery-card{text-align:center}
+.battery-value{font-size:30px;font-weight:800}
+.battery-track{margin-top:14px;height:9px;border-radius:10px;background:#383838;overflow:hidden}
+#batteryFill{height:100%;width:0;background:var(--orange)}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mode{border:1px solid #444;border-radius:10px;background:#222;color:#fff;padding:12px 5px;font-weight:800;cursor:pointer}
+.mode small{display:block;color:#aaa;font-size:11px;margin-top:5px}
+.mode.active{border:2px solid var(--orange);background:#382113;color:#ff8b3d}
+.controls{position:fixed;bottom:0;left:0;right:0;z-index:10;display:flex;justify-content:center;gap:12px;padding:14px;background:#101010f5;border-top:1px solid var(--border)}
+button.mainbtn{border:0;border-radius:8px;padding:13px 24px;background:var(--orange);color:white;font-weight:800;cursor:pointer}
+#fullscreen{background:#303030;border:1px solid #484848}
+html:fullscreen .controls,html:-webkit-full-screen .controls{display:none!important}
+.note{font-size:12px;color:#aaa;line-height:1.45}
+@media(max-width:700px){
+ header{padding:14px}
+ main{grid-template-columns:1fr 1fr;gap:8px;padding:8px}
+ .center-column{grid-column:1/-1;grid-row:1}
+ .left-column{grid-column:1}.right-column{grid-column:2}
+ .card{padding:12px}.value{font-size:23px}.speed{font-size:76px}
+ .mode{font-size:12px}.mode small{font-size:10px}
+ .controls button.mainbtn{padding:12px 18px}
+}
+</style>
+</head>
+<body>
+<header>
+ <div class="logo">VESC DASH</div>
+ <div class="status" id="status">DÉCONNECTÉ</div>
+</header>
+<div class="top-power"><div id="powerFill"></div></div>
+
+<main>
+ <section class="column left-column">
+  <div class="card"><div class="label">Tension batterie</div><div class="value"><span id="voltage">--</span> <span class="unit">V</span></div></div>
+  <div class="card"><div class="label">Courant batterie</div><div class="value"><span id="batteryCurrent">--</span> <span class="unit">A</span></div></div>
+  <div class="card"><div class="label">Temp. contrôleur</div><div class="value"><span id="controllerTemp">--</span> <span class="unit">°C</span></div></div>
+  <div class="card"><div class="label">Régime moteur</div><div class="value"><span id="rpm">--</span> <span class="unit">ERPM</span></div></div>
+ </section>
+
+ <section class="column center-column">
+  <div class="card speed-card"><div class="speed" id="speed">0</div><div class="speed-unit">KM/H</div></div>
+  <div class="card battery-card">
+   <div class="label">Batterie estimée</div>
+   <div class="battery-value"><span id="batteryPercent">--</span><span class="unit"> %</span></div>
+   <div class="battery-track"><div id="batteryFill"></div></div>
+  </div>
+  <div class="card">
+   <div class="modes">
+    <button class="mode active" data-mode="eco">ECO<small>20 A</small></button>
+    <button class="mode" data-mode="sport">SPORT<small>40 A</small></button>
+    <button class="mode" data-mode="race">RACE<small>À régler</small></button>
+   </div>
+  </div>
+ </section>
+
+ <section class="column right-column">
+  <div class="card"><div class="label">Puissance électrique</div><div class="value"><span id="power">--</span> <span class="unit">kW</span></div></div>
+  <div class="card"><div class="label">Courant moteur</div><div class="value"><span id="motorCurrent">--</span> <span class="unit">A</span></div></div>
+  <div class="card"><div class="label">Duty cycle</div><div class="value"><span id="duty">--</span> <span class="unit">%</span></div></div>
+  <div class="card"><div class="label">Connexion BLE</div><div class="value" id="bleState" style="font-size:20px">OFFLINE</div></div>
+ </section>
+</main>
+
+<div class="controls" id="controls">
+ <button class="mainbtn" id="connect">CONNECTER</button>
+ <button class="mainbtn" id="fullscreen">PLEIN ÉCRAN</button>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const SERVICE_UUID="6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+const RX_UUID="6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+const TX_UUID="6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+let device=null,txCharacteristic=null,rxCharacteristic=null,pollTimer=null,buffer=[];
+let latestRpm=0, latestMotorCurrent=0;
+const LISP_REPL_COMMAND=138;
+const RACE_SPEED_CAP_KMH=40; // Limite provisoire : ne pas programmer 120 km/h sans validation mécanique complète.
+
+const profiles={
+ eco:{name:"ECO",speedKmh:25,currentScale:0.30,watts:500},
+ sport:{name:"SPORT",speedKmh:40,currentScale:0.60,watts:1000},
+ // La demande Race est 120 km/h, mais le dashboard la plafonne provisoirement à 40 km/h.
+ race:{name:"RACE",requestedSpeedKmh:120,speedKmh:RACE_SPEED_CAP_KMH,currentScale:1.00,watts:2500}
+};
+
+function lispNumber(n){ return Number(n).toFixed(3); }
+function makeLispProfileExpression(p){
+ const speedMs=p.speedKmh/3.6;
+ // conf-set applique les paramètres en RAM, sans les enregistrer en mémoire flash.
+ return `{ (conf-set 'max-speed ${lispNumber(speedMs)}) (conf-set 'l-watt-max ${lispNumber(p.watts)}) (conf-set 'l-current-max-scale ${lispNumber(p.currentScale)}) }`;
+}
+async function chooseMode(name){
+ const p=profiles[name];
+ if(!p) return;
+ if(!device?.gatt?.connected || !txCharacteristic){
+  const status=$("modeStatus");
+  if(status) status.textContent="Connecte d'abord le VESC en Bluetooth. Aucun réglage n'a été envoyé.";
+  return;
+ }
+ // Changement uniquement à l'arrêt, pour éviter une modification de limite en pleine accélération.
+ if(Math.abs(latestRpm)>100 || Math.abs(latestMotorCurrent)>2){
+  const status=$("modeStatus");
+  if(status) status.textContent="Mode refusé : arrête complètement la trottinette et relâche l'accélérateur avant de changer de profil.";
+  return;
+ }
+ const status=$("modeStatus");
+ if(status) status.textContent=`Envoi du profil ${p.name}… Garde la trottinette immobile et l'accélérateur relâché.`;
+ try{
+  await sendLispCommand(makeLispProfileExpression(p));
+  document.querySelectorAll(".mode").forEach(b=>b.classList.toggle("active",b.dataset.mode===name));
+  if(status){
+   const capNote=name==="race"?` Vitesse Race demandée : 120 km/h, plafonnée provisoirement à ${RACE_SPEED_CAP_KMH} km/h.`:"";
+   status.textContent=`Commande envoyée : ${p.name} — ${p.speedKmh} km/h max, limite courant ${Math.round(p.currentScale*100)} %, ${p.watts} W. Vérifie le résultat dans VESC Tool avant de rouler.${capNote}`;
+  }
+ }catch(e){
+  console.error(e);
+  if(status) status.textContent="Échec de l'envoi du profil. Aucun changement confirmé : vérifie le Bluetooth et la prise en charge du REPL Lisp par le firmware.";
+ }
+}
+document.querySelectorAll(".mode").forEach(b=>b.addEventListener("click",()=>chooseMode(b.dataset.mode)));
+
+function setStatus(s,connected=false){
+ $("status").textContent=s;
+ $("bleState").textContent=connected?"ONLINE":"OFFLINE";
+ $("bleState").style.color=connected?"#64dc85":"#ff6a00";
+}
+function crc16(data){
+ let crc=0;
+ for(const byte of data){
+  crc^=byte<<8;
+  for(let i=0;i<8;i++)crc=(crc&0x8000)?((crc<<1)^0x1021):(crc<<1);
+  crc&=0xffff;
+ }
+ return crc;
+}
+function makePacketPayload(payload){
+ if(payload.length>255) throw new Error("Paquet VESC trop long");
+ const crc=crc16(payload);
+ return new Uint8Array([2,payload.length,...payload,(crc>>8)&255,crc&255,3]);
+}
+function makePacket(command){ return makePacketPayload(new Uint8Array([command])); }
+async function writePacket(packet){
+ if(!txCharacteristic) throw new Error("BLE non connecté");
+ if(txCharacteristic.writeValueWithoutResponse) await txCharacteristic.writeValueWithoutResponse(packet);
+ else await txCharacteristic.writeValue(packet);
+}
+async function sendCommand(command){ await writePacket(makePacket(command)); }
+async function sendLispCommand(expression){
+ // COMM_LISP_REPL_CMD (138) suivi des octets UTF-8 de l'expression Lisp.
+ const textBytes=new TextEncoder().encode(expression);
+ const payload=new Uint8Array(1+textBytes.length);
+ payload[0]=LISP_REPL_COMMAND;
+ payload.set(textBytes,1);
+ await writePacket(makePacketPayload(payload));
+}
+function u16(d,o){return(d[o]<<8)|d[o+1]}
+function s16(d,o){const n=u16(d,o);return n>32767?n-65536:n}
+function s32(d,o){const n=d[o]*16777216+(d[o+1]<<16)+(d[o+2]<<8)+d[o+3];return n>2147483647?n-4294967296:n}
+
+function parsePayload(d){
+ if(d.length<29||d[0]!==4)return;
+ const temp=s16(d,1)/10;
+ const mc=s32(d,5)/100;
+ const bc=s32(d,9)/100;
+ const duty=s16(d,21)/10;
+ const rpm=s32(d,23);
+ latestRpm=rpm; latestMotorCurrent=mc;
+ const volts=u16(d,27)/10;
+ $("controllerTemp").textContent=temp.toFixed(1);
+ $("motorCurrent").textContent=mc.toFixed(1);
+ $("batteryCurrent").textContent=bc.toFixed(1);
+ $("rpm").textContent=Math.round(rpm).toLocaleString("fr-FR");
+ $("voltage").textContent=volts.toFixed(1);
+ $("duty").textContent=duty.toFixed(1);
+ $("power").textContent=(volts*bc/1000).toFixed(2);
+ const pct=Math.max(0,Math.min(100,(volts-39)/(58.8-39)*100));
+ $("batteryPercent").textContent=Math.round(pct);
+ $("batteryFill").style.width=pct+"%";
+ $("powerFill").style.width=Math.min(100,Math.abs(mc))+"%";
+}
+function processBuffer(){
+ while(buffer.length>=2){
+  const i=buffer.findIndex(x=>x===2||x===3);
+  if(i<0){buffer=[];return}
+  if(i>0)buffer.splice(0,i);
+  if(buffer[0]===2){
+   if(buffer.length<2)return;
+   const len=buffer[1],total=len+5;
+   if(buffer.length<total)return;
+   const frame=buffer.slice(0,total),payload=frame.slice(2,2+len);
+   const crc=(frame[2+len]<<8)|frame[3+len];
+   if(frame[total-1]===3&&crc16(payload)===crc)parsePayload(payload);
+   buffer.splice(0,total);
+  }else{
+   if(buffer.length<3)return;
+   const len=(buffer[1]<<8)|buffer[2],total=len+6;
+   if(buffer.length<total)return;
+   const frame=buffer.slice(0,total),payload=frame.slice(3,3+len);
+   const crc=(frame[3+len]<<8)|frame[4+len];
+   if(frame[total-1]===3&&crc16(payload)===crc)parsePayload(payload);
+   buffer.splice(0,total);
+  }
+ }
+}
+function notification(event){
+ const v=event.target.value;
+ buffer.push(...new Uint8Array(v.buffer,v.byteOffset,v.byteLength));
+ if(buffer.length>4096)buffer=buffer.slice(-1024);
+ processBuffer();
+}
+async function connectVesc(){
+ if(!navigator.bluetooth){alert("Bluetooth BLE non disponible. Essaie Chrome ou Edge compatible.");return}
+ try{
+  $("connect").disabled=true;setStatus("RECHERCHE...");
+  device=await navigator.bluetooth.requestDevice({filters:[{services:[SERVICE_UUID]}]});
+  device.addEventListener("gattserverdisconnected",disconnected);
+  const server=await device.gatt.connect();
+  const service=await server.getPrimaryService(SERVICE_UUID);
+  txCharacteristic=await service.getCharacteristic(RX_UUID);
+  rxCharacteristic=await service.getCharacteristic(TX_UUID);
+  await rxCharacteristic.startNotifications();
+  rxCharacteristic.addEventListener("characteristicvaluechanged",notification);
+  buffer=[];setStatus("CONNECTÉ",true);
+  $("connect").textContent="DÉCONNECTER";$("connect").disabled=false;
+  await sendCommand(4);
+  clearInterval(pollTimer);
+  pollTimer=setInterval(()=>sendCommand(4).catch(console.error),500);
+ }catch(e){
+  console.error(e);setStatus("ERREUR BLE");
+  $("connect").textContent="CONNECTER";$("connect").disabled=false;
+ }
+}
+function disconnected(){
+ clearInterval(pollTimer);pollTimer=null;txCharacteristic=null;rxCharacteristic=null;buffer=[];
+ setStatus("DÉCONNECTÉ");$("connect").textContent="CONNECTER";$("connect").disabled=false;
+}
+function disconnectVesc(){
+ clearInterval(pollTimer);pollTimer=null;
+ if(device?.gatt?.connected)device.gatt.disconnect();else disconnected();
+}
+$("connect").addEventListener("click",()=>device?.gatt?.connected?disconnectVesc():connectVesc());
+$("fullscreen").addEventListener("click",async()=>{
+ try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}
+ catch(e){console.error("Plein écran :",e)}
+});
+function fullscreenChanged(){
+ $("controls").style.display=(document.fullscreenElement||document.webkitFullscreenElement)?"none":"flex";
+}
+document.addEventListener("fullscreenchange",fullscreenChanged);
+document.addEventListener("webkitfullscreenchange",fullscreenChanged);
+</script>
+</body>
+</html>

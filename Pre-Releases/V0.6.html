@@ -1,0 +1,606 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VESC Dashboard</title>
+
+<style>
+:root {
+  --bg: #101112;
+  --panel: #1b1d1f;
+  --text: #f4f4f4;
+  --muted: #8e9398;
+  --orange: #ff791f;
+  --green: #48e08a;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  background: var(--bg);
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 10px 0 75px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Barre de puissance toujours au-dessus du tableau de bord */
+.top-power {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  z-index: 99999;
+  background: #383838;
+  pointer-events: none;
+}
+
+#powerFill {
+  width: 0%;
+  height: 100%;
+  background: var(--orange);
+  transition: width .15s linear;
+}
+
+/* En plein écran, la page garde ses commandes visibles */
+body:fullscreen {
+  min-height: 100%;
+  overflow: auto;
+  background: var(--bg);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 22px;
+  border-bottom: 1px solid #292b2d;
+}
+
+.brand {
+  font-size: 19px;
+  font-weight: 900;
+  letter-spacing: 3px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #777;
+}
+
+.status-dot.connected {
+  background: var(--green);
+}
+
+main {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) minmax(220px, 1.35fr) minmax(150px, 1fr);
+  gap: 14px;
+  padding: 16px;
+  align-items: stretch;
+  min-height: calc(100vh - 180px);
+}
+
+.side {
+  display: grid;
+  grid-template-rows: repeat(4, minmax(75px, 1fr));
+  gap: 10px;
+}
+
+.tile {
+  background: var(--panel);
+  border-radius: 9px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.label {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.value {
+  font-size: clamp(18px, 2.2vw, 29px);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.unit {
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: 3px;
+  font-weight: 400;
+}
+
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: #151718;
+  border: 1px solid #252729;
+  border-radius: 12px;
+  padding: 20px 12px;
+}
+
+.speed { text-align: center; }
+
+.speed-number {
+  font-size: clamp(72px, 10vw, 130px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -5px;
+}
+
+.speed-unit {
+  color: var(--muted);
+  font-size: 14px;
+  letter-spacing: 4px;
+  margin-top: 8px;
+}
+
+.battery {
+  width: 100%;
+  max-width: 260px;
+  padding: 0 8px;
+}
+
+.battery-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.battery-percent {
+  font-size: 34px;
+  font-weight: 800;
+}
+
+.battery-voltage {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.battery-track {
+  width: 100%;
+  height: 12px;
+  background: #303336;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+#batteryFill {
+  height: 100%;
+  width: 0%;
+  background: var(--green);
+  transition: width .3s;
+}
+
+/* Commandes fixées en bas de l'écran */
+.controls {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid #292b2d;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100000;
+  background: var(--bg);
+  visibility: visible;
+  opacity: 1;
+}
+
+button {
+  background: #242729;
+  color: var(--text);
+  border: 1px solid #414548;
+  border-radius: 7px;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:active { background: #393d40; }
+
+#connect {
+  background: var(--orange);
+  color: #111;
+  border-color: var(--orange);
+}
+
+button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 650px) {
+  main {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 6px;
+    padding: 7px;
+    min-height: calc(100vh - 160px);
+  }
+
+  .side {
+    gap: 6px;
+    grid-template-rows: repeat(4, minmax(65px, 1fr));
+  }
+
+  .tile { padding: 8px 6px; }
+
+  .label {
+    font-size: 9px;
+    letter-spacing: .5px;
+    margin-bottom: 8px;
+  }
+
+  .value { font-size: clamp(14px, 3vw, 20px); }
+
+  .center { padding: 10px 4px; gap: 18px; }
+
+  .speed-number {
+    font-size: clamp(50px, 12vw, 80px);
+    letter-spacing: -3px;
+  }
+
+  .battery-percent { font-size: 25px; }
+  .battery-voltage { font-size: 11px; }
+  header { padding: 12px 10px; }
+  .brand { font-size: 15px; }
+  .controls { padding: 8px; }
+  button { padding: 11px; font-size: 12px; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="top-power">
+  <div id="powerFill"></div>
+</div>
+
+<header>
+  <div class="brand">VESC DASH</div>
+  <div class="status">
+    <span class="status-dot" id="statusDot"></span>
+    <span id="status">Déconnecté</span>
+  </div>
+</header>
+
+<main>
+  <section class="side">
+    <div class="tile">
+      <div class="label">Tension</div>
+      <div class="value" id="voltage">-- <span class="unit">V</span></div>
+    </div>
+    <div class="tile">
+      <div class="label">Courant batterie</div>
+      <div class="value" id="current">-- <span class="unit">A</span></div>
+    </div>
+    <div class="tile">
+      <div class="label">Temp. contrôleur</div>
+      <div class="value" id="fet">-- <span class="unit">°C</span></div>
+    </div>
+    <div class="tile">
+      <div class="label">Régime moteur</div>
+      <div class="value" id="rpm">-- <span class="unit">RPM</span></div>
+    </div>
+  </section>
+
+  <section class="center">
+    <div class="speed">
+      <div class="speed-number">0</div>
+      <div class="speed-unit">KM/H</div>
+    </div>
+    <div class="battery">
+      <div class="battery-top">
+        <div class="battery-percent" id="percent">--%</div>
+        <div class="battery-voltage" id="voltageMain">-- V</div>
+      </div>
+      <div class="battery-track">
+        <div id="batteryFill"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="side">
+    <div class="tile">
+      <div class="label">Puissance</div>
+      <div class="value" id="power">-- <span class="unit">kW</span></div>
+    </div>
+    <div class="tile">
+      <div class="label">Courant moteur</div>
+      <div class="value" id="motorCurrent">-- <span class="unit">A</span></div>
+    </div>
+    <div class="tile">
+      <div class="label">Duty cycle</div>
+      <div class="value" id="duty">-- <span class="unit">%</span></div>
+    </div>
+    <div class="tile">
+      <div class="label">Connexion</div>
+      <div class="value" style="font-size:17px" id="connectionInfo">BLE</div>
+    </div>
+  </section>
+</main>
+
+<div class="controls">
+  <button id="connect" type="button">Connecter</button>
+  <button id="fullscreen" type="button">Plein écran</button>
+</div>
+
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+
+const SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+const RX_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+const TX_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+
+let device = null;
+let server = null;
+let txCharacteristic = null;
+let rxCharacteristic = null;
+let receiveBuffer = new Uint8Array(0);
+let pollTimer = null;
+let connecting = false;
+
+function setStatus(message, connected = false) {
+  $("status").textContent = message;
+  $("statusDot").classList.toggle("connected", connected);
+  $("connect").textContent = connected ? "Déconnecter" : "Connecter";
+}
+
+function crc16(data) {
+  let crc = 0;
+  for (const byte of data) {
+    crc ^= byte << 8;
+    for (let i = 0; i < 8; i++) {
+      crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
+      crc &= 0xffff;
+    }
+  }
+  return crc;
+}
+
+function makePacket(payload) {
+  const packet = new Uint8Array(payload.length + 5);
+  packet[0] = 2;
+  packet[1] = payload.length;
+  packet.set(payload, 2);
+  const crc = crc16(payload);
+  packet[packet.length - 3] = (crc >> 8) & 0xff;
+  packet[packet.length - 2] = crc & 0xff;
+  packet[packet.length - 1] = 3;
+  return packet;
+}
+
+async function sendGetValues() {
+  if (!rxCharacteristic || !device?.gatt?.connected) return;
+  try {
+    const packet = makePacket(new Uint8Array([4]));
+    if (rxCharacteristic.properties.writeWithoutResponse) {
+      await rxCharacteristic.writeValueWithoutResponse(packet);
+    } else {
+      await rxCharacteristic.writeValueWithResponse(packet);
+    }
+  } catch (error) {
+    console.error("Erreur d'envoi VESC :", error);
+    setStatus("Erreur de communication");
+  }
+}
+
+function readI16(data, offset) {
+  const value = (data[offset] << 8) | data[offset + 1];
+  return value & 0x8000 ? value - 0x10000 : value;
+}
+
+function readI32(data, offset) {
+  const value = (
+    data[offset] * 0x1000000 +
+    (data[offset + 1] << 16) +
+    (data[offset + 2] << 8) +
+    data[offset + 3]
+  ) >>> 0;
+  return value > 0x7fffffff ? value - 0x100000000 : value;
+}
+
+function showNumber(id, value, unit, decimals = 1) {
+  $(id).innerHTML =
+    `${Number.isFinite(value) ? value.toFixed(decimals) : "--"} <span class="unit">${unit}</span>`;
+}
+
+function parseVescPayload(payload) {
+  if (payload.length < 29 || payload[0] !== 4) return;
+
+  const d = payload.subarray(1);
+  const fetTemp = readI16(d, 0) / 10;
+  const motorCurrent = readI32(d, 4) / 100;
+  const batteryCurrent = readI32(d, 8) / 100;
+  const duty = readI16(d, 20) / 10;
+  const rpm = readI32(d, 22);
+  const voltage = readI16(d, 26) / 10;
+
+  const powerKW = voltage * batteryCurrent / 1000;
+  const percentage = Math.max(0, Math.min(100, (voltage - 39) / 19 * 100));
+
+  showNumber("voltage", voltage, "V");
+  showNumber("current", batteryCurrent, "A");
+  showNumber("fet", fetTemp, "°C");
+  showNumber("rpm", rpm, "RPM", 0);
+  showNumber("power", powerKW, "kW", 2);
+  showNumber("motorCurrent", motorCurrent, "A");
+  showNumber("duty", duty, "%");
+
+  $("percent").textContent = `${Math.round(percentage)}%`;
+  $("voltageMain").textContent = `${voltage.toFixed(1)} V`;
+  $("batteryFill").style.width = `${percentage}%`;
+
+  const powerPercentage = Math.max(0, Math.min(100, Math.abs(motorCurrent)));
+  $("powerFill").style.width = `${powerPercentage}%`;
+}
+
+function handleNotification(event) {
+  const value = event.target.value;
+  const incoming = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+  const merged = new Uint8Array(receiveBuffer.length + incoming.length);
+  merged.set(receiveBuffer);
+  merged.set(incoming, receiveBuffer.length);
+  receiveBuffer = merged;
+
+  while (receiveBuffer.length >= 5) {
+    const start = receiveBuffer.indexOf(2);
+    if (start < 0) {
+      receiveBuffer = new Uint8Array(0);
+      return;
+    }
+    if (start > 0) receiveBuffer = receiveBuffer.slice(start);
+    if (receiveBuffer.length < 2) return;
+
+    const payloadLength = receiveBuffer[1];
+    const packetLength = payloadLength + 5;
+    if (receiveBuffer.length < packetLength) return;
+
+    const packet = receiveBuffer.slice(0, packetLength);
+    receiveBuffer = receiveBuffer.slice(packetLength);
+    if (packet[packetLength - 1] !== 3) continue;
+
+    const payload = packet.slice(2, 2 + payloadLength);
+    const receivedCRC = (packet[packetLength - 3] << 8) | packet[packetLength - 2];
+    if (crc16(payload) !== receivedCRC) continue;
+
+    parseVescPayload(payload);
+  }
+}
+
+async function connect() {
+  if (connecting) return;
+  connecting = true;
+  $("connect").disabled = true;
+
+  try {
+    if (device?.gatt?.connected) {
+      await disconnect();
+      return;
+    }
+
+    if (!navigator.bluetooth) {
+      throw new Error("Bluetooth Web nécessite Chrome/Edge et HTTPS ou localhost.");
+    }
+
+    setStatus("Recherche Bluetooth…");
+
+    device = await navigator.bluetooth.requestDevice({
+      filters: [{ services: [SERVICE_UUID] }]
+    });
+
+    device.addEventListener("gattserverdisconnected", onDisconnected);
+    server = await device.gatt.connect();
+
+    const service = await server.getPrimaryService(SERVICE_UUID);
+    rxCharacteristic = await service.getCharacteristic(RX_UUID);
+    txCharacteristic = await service.getCharacteristic(TX_UUID);
+
+    await txCharacteristic.startNotifications();
+    txCharacteristic.addEventListener("characteristicvaluechanged", handleNotification);
+
+    receiveBuffer = new Uint8Array(0);
+    setStatus("Connecté", true);
+    $("connectionInfo").textContent = "Actif";
+
+    await sendGetValues();
+    pollTimer = setInterval(sendGetValues, 500);
+  } catch (error) {
+    console.error(error);
+    setStatus(error.message || "Connexion impossible");
+    $("connectionInfo").textContent = "BLE";
+  } finally {
+    connecting = false;
+    $("connect").disabled = false;
+  }
+}
+
+async function disconnect() {
+  if (pollTimer) {
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
+
+  try {
+    if (txCharacteristic) {
+      txCharacteristic.removeEventListener("characteristicvaluechanged", handleNotification);
+    }
+    if (device?.gatt?.connected) device.gatt.disconnect();
+  } catch (error) {
+    console.error(error);
+  }
+
+  txCharacteristic = null;
+  rxCharacteristic = null;
+  server = null;
+  receiveBuffer = new Uint8Array(0);
+  setStatus("Déconnecté");
+  $("connectionInfo").textContent = "BLE";
+}
+
+function onDisconnected() {
+  if (pollTimer) {
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
+  txCharacteristic = null;
+  rxCharacteristic = null;
+  server = null;
+  receiveBuffer = new Uint8Array(0);
+  setStatus("Déconnecté");
+  $("connectionInfo").textContent = "BLE";
+}
+
+$("connect").addEventListener("click", connect);
+
+$("fullscreen").addEventListener("click", async () => {
+  try {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+    } else {
+      await document.exitFullscreen();
+    }
+  } catch (error) {
+    console.error("Plein écran indisponible :", error);
+  }
+});
+</script>
+
+</body>
+</html>

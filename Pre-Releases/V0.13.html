@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<title>VESC DASH</title>
+<style>
+*{box-sizing:border-box}
+:root{
+ --bg:#050505;--panel:#0d0d0d;--line:#262626;--text:#f2efe9;--muted:#76736d;
+ --accent:#ff4d00;--accent-dim:#4a1c08;--ok:#5dd67f;
+ --cut:14px;
+ --font:"Bahnschrift","Roboto Condensed","Arial Narrow","Helvetica Neue",Arial,sans-serif;
+}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);padding-bottom:84px;
+ background-image:repeating-linear-gradient(135deg,#ffffff05 0 2px,transparent 2px 6px)}
+header{display:flex;justify-content:space-between;align-items:center;padding:16px 22px calc(12px)}
+.logo{font-size:22px;font-weight:700;font-style:italic;letter-spacing:6px}
+.logo b{color:var(--accent)}
+.status{display:flex;align-items:center;gap:8px;font-size:13px;letter-spacing:2px;color:var(--muted)}
+.dot{width:8px;height:8px;background:var(--accent);transform:skewX(-20deg)}
+.status.on .dot{background:var(--ok);box-shadow:0 0 10px var(--ok)}
+.status.on{color:var(--text)}
+
+main{display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:14px;max-width:1300px;margin:0 auto;padding:6px 16px 16px;align-items:stretch}
+.col{display:flex;flex-direction:column;gap:10px;min-width:0}
+
+.tile{position:relative;background:var(--panel);padding:14px 16px 12px 20px;flex:1;display:flex;flex-direction:column;justify-content:center;
+ clip-path:polygon(0 0,calc(100% - var(--cut)) 0,100% var(--cut),100% 100%,var(--cut) 100%,0 calc(100% - var(--cut)));
+ border-left:3px solid var(--accent)}
+.tile .k{font-size:12px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+.tile .v{font-size:clamp(28px,3.6vw,44px);font-weight:700;font-style:italic;line-height:1.1;margin-top:4px;font-variant-numeric:tabular-nums}
+.tile .u{font-size:14px;color:var(--muted);font-style:normal;font-weight:400;margin-left:4px}
+.tile.warn{border-left-color:#ffb000}
+.tile.hot .v{color:var(--accent)}
+
+/* Jauge centrale */
+.gauge{position:relative;display:flex;align-items:center;justify-content:center;padding:6px 0}
+.gauge svg{width:100%;max-width:520px;height:auto;overflow:visible}
+.arc-bg{stroke:#1d1d1d}
+.arc-fill{stroke:var(--accent);transition:stroke-dashoffset .15s linear;filter:drop-shadow(0 0 8px #ff4d0088)}
+.ticks line{stroke:#3a3a3a}
+.gauge-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none;padding-bottom:6%}
+.speed{font-size:clamp(88px,15vw,170px);font-weight:700;font-style:italic;line-height:.9;letter-spacing:-4px;font-variant-numeric:tabular-nums}
+.speed-unit{font-size:15px;letter-spacing:6px;color:var(--muted);margin-top:6px}
+.gauge-sub{margin-top:14px;font-size:13px;letter-spacing:2px;color:var(--muted)}
+.gauge-sub b{color:var(--text);font-size:20px;font-style:italic;margin-right:4px}
+
+/* Batterie segmentée */
+.bat{background:var(--panel);padding:12px 16px;margin-top:2px;
+ clip-path:polygon(0 0,100% 0,100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,0 100%)}
+.bat-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.bat-head .k{font-size:12px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+.bat-head .v{font-size:26px;font-weight:700;font-style:italic}
+.bat-head .u{font-size:13px;color:var(--muted);font-style:normal}
+.segs{display:grid;grid-template-columns:repeat(20,1fr);gap:3px;height:16px}
+.seg{background:#1f1f1f;transform:skewX(-20deg);transition:background .2s}
+.seg.on{background:var(--accent)}
+.seg.low.on{background:#ff1d1d}
+
+/* Modes */
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.mode{appearance:none;border:0;color:var(--muted);background:#121212;font-family:var(--font);cursor:pointer;padding:12px 6px 10px;
+ font-size:18px;font-weight:700;font-style:italic;letter-spacing:3px;
+ clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);transition:background .15s,color .15s}
+.mode small{display:block;font-size:11px;font-weight:400;letter-spacing:1px;margin-top:3px;font-style:normal}
+.mode.active{background:var(--accent);color:#000}
+.mode:focus-visible,button.mainbtn:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+#modeStatus{margin:8px 2px 0;min-height:30px;font-size:12px;color:var(--muted);line-height:1.4}
+
+/* Barre de puissance */
+.power-rail{height:6px;background:#161616}
+#powerFill{height:100%;width:0;background:var(--accent);transition:width .12s;box-shadow:0 0 12px var(--accent)}
+
+/* Contrôles */
+.controls{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;justify-content:center;gap:10px;
+ padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px));background:#050505f2;border-top:1px solid var(--line)}
+button.mainbtn{appearance:none;border:0;cursor:pointer;font-family:var(--font);font-weight:700;font-style:italic;letter-spacing:3px;font-size:15px;
+ padding:13px 28px;background:var(--accent);color:#000;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+button.mainbtn.alt{background:#1c1c1c;color:var(--text)}
+button.mainbtn:disabled{opacity:.5}
+html:fullscreen .controls,html:-webkit-full-screen .controls{display:none!important}
+
+@media(max-width:820px){
+ main{grid-template-columns:1fr 1fr;gap:8px;padding:4px 10px 12px}
+ .mid{grid-column:1/-1;grid-row:1}
+ .tile{padding:10px 10px 8px 14px}
+ .tile .v{font-size:26px}
+ header{padding:12px 14px 8px}
+ button.mainbtn{padding:12px 16px;font-size:13px;letter-spacing:2px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+ <div class="logo">VESC<b>/</b>DASH</div>
+ <div class="status" id="statusWrap"><span class="dot"></span><span id="status">DÉCONNECTÉ</span></div>
+</header>
+<div class="power-rail"><div id="powerFill"></div></div>
+
+<main>
+ <section class="col">
+  <div class="tile"><div class="k">Tension</div><div class="v"><span id="voltage">--</span><span class="u">V</span></div></div>
+  <div class="tile"><div class="k">Courant batterie</div><div class="v"><span id="batteryCurrent">--</span><span class="u">A</span></div></div>
+  <div class="tile" id="tempTile"><div class="k">Contrôleur</div><div class="v"><span id="controllerTemp">--</span><span class="u">°C</span></div></div>
+  <div class="tile"><div class="k">Régime</div><div class="v"><span id="rpm">--</span><span class="u">ERPM</span></div></div>
+ </section>
+
+ <section class="col mid">
+  <div class="gauge">
+   <svg viewBox="0 0 400 360" aria-hidden="true">
+    <path class="arc-bg" d="M 76 296 A 170 170 0 1 1 324 296" fill="none" stroke-width="22" stroke-linecap="butt" pathLength="100"/>
+    <path id="arc" class="arc-fill" d="M 76 296 A 170 170 0 1 1 324 296" fill="none" stroke-width="22" stroke-linecap="butt" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/>
+    <g class="ticks" id="ticks"></g>
+   </svg>
+   <div class="gauge-center">
+    <div class="speed" id="speed">0</div>
+    <div class="speed-unit">KM/H</div>
+    <div class="gauge-sub"><b id="power">--</b>kW</div>
+   </div>
+  </div>
+  <div class="bat">
+   <div class="bat-head"><span class="k">Batterie estimée</span><span class="v"><span id="batteryPercent">--</span><span class="u"> %</span></span></div>
+   <div class="segs" id="segs"></div>
+  </div>
+  <div>
+   <div class="modes">
+    <button class="mode active" data-mode="eco">ECO<small>15 A</small></button>
+    <button class="mode" data-mode="sport">SPORT<small>30 A</small></button>
+    <button class="mode" data-mode="race">RACE<small>50 A</small></button>
+   </div>
+   <div id="modeStatus"></div>
+  </div>
+ </section>
+
+ <section class="col">
+  <div class="tile"><div class="k">Puissance</div><div class="v"><span id="power2">--</span><span class="u">kW</span></div></div>
+  <div class="tile"><div class="k">Courant moteur</div><div class="v"><span id="motorCurrent">--</span><span class="u">A</span></div></div>
+  <div class="tile"><div class="k">Duty cycle</div><div class="v"><span id="duty">--</span><span class="u">%</span></div></div>
+  <div class="tile"><div class="k">Liaison BLE</div><div class="v" id="bleState" style="font-size:26px">OFFLINE</div></div>
+ </section>
+</main>
+
+<div class="controls" id="controls">
+ <button class="mainbtn" id="connect">CONNECTER</button>
+ <button class="mainbtn alt" id="demo">DÉMO</button>
+ <button class="mainbtn alt" id="fullscreen">PLEIN ÉCRAN</button>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const SERVICE_UUID="6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+const RX_UUID="6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+const TX_UUID="6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+let device=null,txCharacteristic=null,rxCharacteristic=null,pollTimer=null,buffer=[],demoTimer=null;
+
+/* À ajuster selon ta machine pour une vitesse exacte */
+const POLE_PAIRS=7;        // paires de pôles du moteur
+const WHEEL_DIAMETER_M=0.50; // diamètre de roue en mètres
+const GEAR_RATIO=1;        // rapport moteur → roue (réduction)
+
+const profiles={
+ eco:{name:"ECO",motorCurrent:20,batteryCurrent:10},
+ sport:{name:"SPORT",motorCurrent:40,batteryCurrent:20},
+ race:{name:"RACE",motorCurrent:50,batteryCurrent:40}
+};
+let currentMode="eco";
+
+/* Construction des éléments graphiques */
+(function build(){
+ const segs=$("segs");
+ for(let i=0;i<20;i++){const s=document.createElement("div");s.className="seg";segs.appendChild(s)}
+ const g=$("ticks"),cx=200,cy=210,r1=196,r2=206;
+ for(let i=0;i<=20;i++){
+  const a=(135+i*13.5)*Math.PI/180,l=document.createElementNS("http://www.w3.org/2000/svg","line");
+  const r=(i%5===0)?r2+8:r2;
+  l.setAttribute("x1",cx+r1*Math.cos(a));l.setAttribute("y1",cy+r1*Math.sin(a));
+  l.setAttribute("x2",cx+r*Math.cos(a));l.setAttribute("y2",cy+r*Math.sin(a));
+  l.setAttribute("stroke-width",i%5===0?3:1.5);g.appendChild(l);
+ }
+})();
+
+function chooseMode(name){
+ const p=profiles[name];
+ if(!p)return;
+ currentMode=name;
+ document.querySelectorAll(".mode").forEach(b=>b.classList.toggle("active",b.dataset.mode===name));
+ $("modeStatus").textContent=`Mode ${p.name} : cible ${p.motorCurrent} A moteur et ${p.batteryCurrent} A batterie. Le contrôleur n'est pas modifié.`;
+}
+document.querySelectorAll(".mode").forEach(b=>b.addEventListener("click",()=>chooseMode(b.dataset.mode)));
+chooseMode("eco");
+
+function setStatus(s,connected=false){
+ $("status").textContent=s;
+ $("statusWrap").classList.toggle("on",connected);
+ $("bleState").textContent=connected?"ONLINE":"OFFLINE";
+ $("bleState").style.color=connected?"var(--ok)":"var(--accent)";
+}
+
+/* ---- Protocole VESC ---- */
+function crc16(data){
+ let crc=0;
+ for(const byte of data){
+  crc^=byte<<8;
+  for(let i=0;i<8;i++)crc=(crc&0x8000)?((crc<<1)^0x1021):(crc<<1);
+  crc&=0xffff;
+ }
+ return crc;
+}
+function makePacket(command){
+ const payload=new Uint8Array([command]),crc=crc16(payload);
+ return new Uint8Array([2,payload.length,...payload,(crc>>8)&255,crc&255,3]);
+}
+async function sendCommand(command){
+ if(!txCharacteristic)return;
+ const packet=makePacket(command);
+ if(txCharacteristic.writeValueWithoutResponse)await txCharacteristic.writeValueWithoutResponse(packet);
+ else await txCharacteristic.writeValue(packet);
+}
+function u16(d,o){return(d[o]<<8)|d[o+1]}
+function s16(d,o){const n=u16(d,o);return n>32767?n-65536:n}
+function s32(d,o){const n=d[o]*16777216+(d[o+1]<<16)+(d[o+2]<<8)+d[o+3];return n>2147483647?n-4294967296:n}
+
+/* ---- Affichage ---- */
+function render({temp,mc,bc,duty,rpm,volts}){
+ const set=(id,t)=>$(id).textContent=t;
+ set("controllerTemp",temp.toFixed(1));
+ set("motorCurrent",mc.toFixed(1));
+ set("batteryCurrent",bc.toFixed(1));
+ set("rpm",Math.round(rpm).toLocaleString("fr-FR"));
+ set("voltage",volts.toFixed(1));
+ set("duty",duty.toFixed(1));
+ const kw=volts*bc/1000;
+ set("power",kw.toFixed(2));set("power2",kw.toFixed(2));
+
+ const kmh=Math.abs(rpm)/POLE_PAIRS/GEAR_RATIO*Math.PI*WHEEL_DIAMETER_M*60/1000;
+ set("speed",Math.round(kmh));
+
+ const pct=Math.max(0,Math.min(100,(volts-39)/(58.8-39)*100));
+ set("batteryPercent",Math.round(pct));
+ const on=Math.round(pct/5);
+ document.querySelectorAll(".seg").forEach((s,i)=>{
+  s.classList.toggle("on",i<on);s.classList.toggle("low",pct<20);
+ });
+
+ const limit=profiles[currentMode].motorCurrent||50;
+ const load=Math.min(100,Math.abs(mc)/limit*100);
+ $("arc").setAttribute("stroke-dashoffset",(100-load).toFixed(1));
+ $("powerFill").style.width=Math.min(100,Math.abs(mc)/50*100)+"%";
+ $("tempTile").classList.toggle("hot",temp>=70);
+}
+function parsePayload(d){
+ if(d.length<29||d[0]!==4)return;
+ render({
+  temp:s16(d,1)/10,
+  mc:s32(d,5)/100,
+  bc:s32(d,9)/100,
+  duty:s16(d,21)/10,
+  rpm:s32(d,23),
+  volts:u16(d,27)/10
+ });
+}
+function processBuffer(){
+ while(buffer.length>=2){
+  const i=buffer.findIndex(x=>x===2||x===3);
+  if(i<0){buffer=[];return}
+  if(i>0)buffer.splice(0,i);
+  if(buffer[0]===2){
+   if(buffer.length<2)return;
+   const len=buffer[1],total=len+5;
+   if(buffer.length<total)return;
+   const frame=buffer.slice(0,total),payload=frame.slice(2,2+len);
+   const crc=(frame[2+len]<<8)|frame[3+len];
+   if(frame[total-1]===3&&crc16(payload)===crc)parsePayload(payload);
+   buffer.splice(0,total);
+  }else{
+   if(buffer.length<3)return;
+   const len=(buffer[1]<<8)|buffer[2],total=len+6;
+   if(buffer.length<total)return;
+   const frame=buffer.slice(0,total),payload=frame.slice(3,3+len);
+   const crc=(frame[3+len]<<8)|frame[4+len];
+   if(frame[total-1]===3&&crc16(payload)===crc)parsePayload(payload);
+   buffer.splice(0,total);
+  }
+ }
+}
+function notification(event){
+ const v=event.target.value;
+ buffer.push(...new Uint8Array(v.buffer,v.byteOffset,v.byteLength));
+ if(buffer.length>4096)buffer=buffer.slice(-1024);
+ processBuffer();
+}
+
+/* ---- Bluetooth ---- */
+async function connectVesc(){
+ if(!navigator.bluetooth){alert("Bluetooth BLE non disponible. Essaie Chrome ou Edge compatible.");return}
+ stopDemo();
+ try{
+  $("connect").disabled=true;setStatus("RECHERCHE...");
+  device=await navigator.bluetooth.requestDevice({filters:[{services:[SERVICE_UUID]}]});
+  device.addEventListener("gattserverdisconnected",disconnected);
+  const server=await device.gatt.connect();
+  const service=await server.getPrimaryService(SERVICE_UUID);
+  txCharacteristic=await service.getCharacteristic(RX_UUID);
+  rxCharacteristic=await service.getCharacteristic(TX_UUID);
+  await rxCharacteristic.startNotifications();
+  rxCharacteristic.addEventListener("characteristicvaluechanged",notification);
+  buffer=[];setStatus("CONNECTÉ",true);
+  $("connect").textContent="DÉCONNECTER";$("connect").disabled=false;
+  await sendCommand(4);
+  clearInterval(pollTimer);
+  pollTimer=setInterval(()=>sendCommand(4).catch(console.error),500);
+ }catch(e){
+  console.error(e);setStatus("ERREUR BLE");
+  $("connect").textContent="CONNECTER";$("connect").disabled=false;
+ }
+}
+function disconnected(){
+ clearInterval(pollTimer);pollTimer=null;txCharacteristic=null;rxCharacteristic=null;buffer=[];
+ setStatus("DÉCONNECTÉ");$("connect").textContent="CONNECTER";$("connect").disabled=false;
+}
+function disconnectVesc(){
+ clearInterval(pollTimer);pollTimer=null;
+ if(device?.gatt?.connected)device.gatt.disconnect();else disconnected();
+}
+$("connect").addEventListener("click",()=>device?.gatt?.connected?disconnectVesc():connectVesc());
+
+/* ---- Démo (aperçu sans moto) ---- */
+function stopDemo(){
+ if(!demoTimer)return;
+ clearInterval(demoTimer);demoTimer=null;$("demo").textContent="DÉMO";
+ if(!device?.gatt?.connected)setStatus("DÉCONNECTÉ");
+}
+$("demo").addEventListener("click",()=>{
+ if(demoTimer){stopDemo();return}
+ if(device?.gatt?.connected)return;
+ let t=0;$("demo").textContent="STOP DÉMO";setStatus("DÉMO",true);
+ demoTimer=setInterval(()=>{
+  t+=.05;
+  const th=Math.max(0,Math.sin(t)*.5+.5);
+  const mc=th*profiles[currentMode].motorCurrent;
+  render({temp:38+th*20,mc,bc:mc*.45,duty:th*70,rpm:th*7500,volts:54-th*3-t*.02%10});
+ },100);
+});
+
+$("fullscreen").addEventListener("click",async()=>{
+ try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}
+ catch(e){console.error("Plein écran :",e)}
+});
+function fullscreenChanged(){
+ $("controls").style.display=(document.fullscreenElement||document.webkitFullscreenElement)?"none":"flex";
+}
+document.addEventListener("fullscreenchange",fullscreenChanged);
+document.addEventListener("webkitfullscreenchange",fullscreenChanged);
+</script>
+</body>
+</html>
