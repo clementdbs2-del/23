@@ -1,0 +1,248 @@
+
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0b0c0b;
+  --panel: #171917;
+  --muted: #858b83;
+  --green: #c4ff4d;
+  --orange: #ff9d36;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: white;
+  font-family: Arial, sans-serif;
+  height: 100dvh;
+  overflow: hidden;
+}
+main {
+  height: 100%;
+  padding: 12px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.top-power {
+  height: 7px;
+  width: 100%;
+  background: #292c28;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+#powerFill {
+  width: 0%;
+  height: 100%;
+  background: var(--orange);
+  transition: width .2s;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.brand {
+  color: var(--green);
+  font-size: 12px;
+  letter-spacing: 4px;
+  font-weight: bold;
+}
+#status { font-size: 10px; color: var(--muted); }
+#status.ok { color: var(--green); }
+
+.layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 1fr;
+  gap: 18px;
+  align-items: center;
+}
+.side {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.tile {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 14px 10px;
+  min-width: 0;
+}
+.label {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+.value {
+  font-size: clamp(17px, 3vw, 27px);
+  font-weight: bold;
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+}
+.value small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: normal;
+}
+.center {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+.speed {
+  font-size: clamp(90px, 18vh, 160px);
+  line-height: .9;
+  font-weight: 800;
+  letter-spacing: -7px;
+}
+.unit {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 3px;
+  margin-top: 8px;
+}
+.battery {
+  width: 100%;
+  background: var(--panel);
+  border-radius: 14px;
+  padding: 12px 16px;
+  text-align: left;
+}
+.battery-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.percent {
+  color: var(--green);
+  font-size: clamp(35px, 7vh, 55px);
+  font-weight: 800;
+}
+.voltage { color: var(--muted); font-size: 13px; }
+.bar {
+  height: 8px;
+  background: #353832;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+#batteryFill {
+  height: 100%;
+  width: 0%;
+  background: var(--green);
+}
+.controls {
+  display: flex;
+  gap: 10px;
+}
+button {
+  flex: 1;
+  border: 0;
+  border-radius: 9px;
+  padding: 11px;
+  background: var(--green);
+  color: #111;
+  font-weight: bold;
+}
+button.secondary {
+  background: #252825;
+  color: white;
+}
+@media (orientation: portrait) {
+  .layout { grid-template-columns: 1fr; overflow-y: auto; }
+  .side { grid-template-columns: repeat(2, 1fr); }
+  .center { order: -1; }
+  .speed { font-size: 90px; }
+  main { overflow-y: auto; }
+}
+@media (max-height: 450px) and (orientation: landscape) {
+  main { padding: 7px 14px; gap: 7px; }
+  .layout { gap: 10px; }
+  .side { gap: 6px; }
+  .tile { padding: 9px 7px; }
+  .value { margin-top: 5px; }
+  .center { gap: 10px; }
+  .speed { font-size: 105px; }
+  .percent { font-size: 35px; }
+  .top-power { height: 5px; }
+  button { padding: 8px; }
+}
+</style>
+
+<main>
+  <div class="top-power">
+    <div id="powerFill"></div>
+  </div>
+
+  <header>
+    <div class="brand">VARG / ELECTRIC</div>
+    <div id="status">DÉCONNECTÉ</div>
+  </header>
+
+  <div class="layout">
+    <section class="side">
+      <div class="tile">
+        <div class="label">TENSION</div>
+        <div class="value" id="voltage">-- <small>V</small></div>
+      </div>
+      <div class="tile">
+        <div class="label">COURANT BATTERIE</div>
+        <div class="value" id="current">-- <small>A</small></div>
+      </div>
+      <div class="tile">
+        <div class="label">TEMPÉRATURE ESC</div>
+        <div class="value" id="fet">-- <small>°C</small></div>
+      </div>
+      <div class="tile">
+        <div class="label">RÉGIME MOTEUR</div>
+        <div class="value" id="rpm">-- <small>ERPM</small></div>
+      </div>
+    </section>
+
+    <section class="center">
+      <div>
+        <div class="label">VITESSE</div>
+        <div class="speed">0</div>
+        <div class="unit">KM/H</div>
+      </div>
+
+      <div class="battery">
+        <div class="battery-top">
+          <div>
+            <div class="label">BATTERIE</div>
+            <div class="percent" id="percent">--%</div>
+          </div>
+          <div class="voltage" id="voltageMain">-- V</div>
+        </div>
+        <div class="bar">
+          <div id="batteryFill"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="side">
+      <div class="tile">
+        <div class="label">PUISSANCE</div>
+        <div class="value" id="power">-- <small>kW</small></div>
+      </div>
+      <div class="tile">
+        <div class="label">COURANT MOTEUR</div>
+        <div class="value" id="motorCurrent">-- <small>A</small></div>
+      </div>
+      <div class="tile">
+        <div class="label">DUTY CYCLE</div>
+        <div class="value" id="duty">-- <small>%</small></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="controls">
+    <button id="connect">CONNECTER LE VESC</button>
+    <button class="secondary" id="fullscreen">PLEIN ÉCRAN</button>
+  </div>
+</main>
