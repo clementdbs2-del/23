@@ -692,7 +692,7 @@ async function connectVesc(){
   await rxCharacteristic.startNotifications();rxCharacteristic.addEventListener("characteristicvaluechanged",notification);
   buffer=[];live=true;if(demoUsed){resetTrip();demoUsed=false}setStatus("CONNECTÉ",true);keepAwake();
   $("connect").textContent="DÉCONNECTER";$("connect").disabled=false;
-  applyVescMode();await sendCommand(4);clearInterval(pollTimer);pollTimer=setInterval(()=>sendCommand(4).catch(console.error),500);
+  applyVescMode();await sendCommand(4);clearInterval(pollTimer);pollTimer=setInterval(()=>sendCommand(4).catch(console.error),100);
  }catch(e){console.error(e);live=false;setStatus("ERREUR BLE");$("connect").textContent="CONNECTER";$("connect").disabled=false}
 }
 function disconnected(){
