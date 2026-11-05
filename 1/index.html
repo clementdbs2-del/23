@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#050505">
+<meta name="theme-color" content="#000000">
 <title>VESC DASH</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600&family=DM+Mono:wght@400;500&family=Barlow+Condensed:wght@500;600;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap">
 <style>
 *{box-sizing:border-box}
-:root{--bg:#050505;--panel:#0e0e0e;--line:#262626;--text:#f2efe9;--muted:#7d7a74;--accent:#2f7bff;--on-accent:#000;--ok:#5dd67f;--cut:14px;--bar:64px;--ui:.8;--barh:calc(var(--bar)*var(--ui));--panel2:#171717;--track:#1b1b1b;--seg:#1f1f1f;--chip:#141414;--chip2:#1c1c1c;--ovl:#0a0a0aee;--barbg:#050505f2;--tick:#3c3c3c;--rail:#161616;--mapbg:#111;--glow:color-mix(in srgb,var(--accent) 60%,transparent);--glow2:color-mix(in srgb,var(--accent) 20%,transparent);--glow3:color-mix(in srgb,var(--accent) 8%,transparent);color-scheme:dark;
+:root{--bg:#060a13;--panel:#0d131d;--line:#1f2937;--text:#e9eef7;--muted:#7f8da3;--accent:#2f7bff;--on-accent:#000;--ok:#5dd67f;--cut:14px;--bar:64px;--ui:.8;--barh:calc(var(--bar)*var(--ui));--panel2:#131b28;--track:#18212e;--seg:#1c2635;--chip:#111926;--chip2:#182131;--ovl:#0a0f19e6;--barbg:#060a13d9;--tick:#344155;--rail:#121a26;--mapbg:#0d131d;--glow:color-mix(in srgb,var(--accent) 60%,transparent);--glow2:color-mix(in srgb,var(--accent) 20%,transparent);--glow3:color-mix(in srgb,var(--accent) 8%,transparent);color-scheme:dark;
  --font:"Bahnschrift","Roboto Condensed","Arial Narrow","Helvetica Neue",Arial,sans-serif}
-html[data-theme=light]{--bg:#ecebe6;--panel:#fff;--line:#d3d0c8;--text:#161616;--muted:#6e6a62;--panel2:#f4f3ee;--track:#dedbd3;--seg:#dad7cf;--chip:#e2dfd7;--chip2:#e2dfd7;--ovl:#fffffff0;--barbg:#f6f5f1f5;--tick:#a9a59c;--rail:#d9d6ce;--mapbg:#ddd;color-scheme:light}
+html[data-theme=light]{--bg:#e8ecf2;--panel:#fff;--line:#d3dae5;--text:#111827;--muted:#64708a;--panel2:#f3f6fa;--track:#dbe2ec;--seg:#d6dee9;--chip:#e3e9f1;--chip2:#e3e9f1;--ovl:#fffffff0;--barbg:#f4f7fbd9;--tick:#a3afc2;--rail:#d6dde8;--mapbg:#ddd;color-scheme:light}
 html,body{height:100%}
 header,.power-rail,main,.controls,#panel,#recap,#modesPage,#gps .ov{zoom:var(--ui)}
 body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);padding-bottom:calc(var(--barh) + 16px);
@@ -447,6 +447,101 @@ main#dash,#gps{animation:fadeIn .4s ease both}
 html:not(.lv) #connect:not(:disabled){animation:cnPulse 2.6s ease-in-out infinite}
 #sndRange{width:100%;accent-color:var(--accent)}#sndRange:disabled{opacity:.4}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* ===== V0.46 : refonte visuelle (aucun changement de logique) ===== */
+:root{--font:"Barlow Semi Condensed","Bahnschrift","Roboto Condensed","Arial Narrow",Arial,sans-serif;--num:"Barlow Condensed","Bahnschrift","Roboto Condensed","Arial Narrow",sans-serif;--r:20px;
+ --surf:linear-gradient(160deg,color-mix(in srgb,var(--text) 6%,var(--panel2)),var(--panel) 55%);--hair:inset 0 1px 0 color-mix(in srgb,var(--text) 9%,transparent)}
+*{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+::selection{background:var(--glow2)}
+body{font-feature-settings:"tnum";background-image:radial-gradient(120% 70% at 50% -10%,color-mix(in srgb,var(--accent) 15%,transparent),transparent 62%),radial-gradient(80% 50% at 50% 115%,color-mix(in srgb,var(--accent) 8%,transparent),transparent 70%)}
+header{padding:18px 22px 14px}
+.logo{font:700 21px var(--font);letter-spacing:.3em}
+.by{letter-spacing:.24em;opacity:.8}
+.status{padding:8px 15px 8px 12px;border:1px solid var(--line);border-radius:999px;background:var(--chip);font-size:12px;font-weight:600;letter-spacing:.18em}
+.dot{border-radius:50%;transform:none;background:var(--muted);opacity:.6}
+.status.on .dot{opacity:1;animation:live 2s ease-out infinite}
+@keyframes live{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ok) 60%,transparent)}100%{box-shadow:0 0 0 9px transparent}}
+.power-rail{height:3px;margin:0 22px;border-radius:3px;overflow:hidden}
+#powerFill{border-radius:3px;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 30%,transparent),var(--accent));box-shadow:0 0 16px var(--glow)}
+/* surfaces */
+.tile,.rc,.rcard,.bat,.hud,#navinfo{clip-path:none;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);box-shadow:var(--hair),0 18px 40px -26px #000}
+.hud,#navinfo{background:var(--ovl);padding:12px 18px}
+.tile{padding:15px 18px 13px 22px}.bat{padding:14px 18px}
+.rcard{position:relative;padding:16px 18px 14px 22px}
+.tile::before,.rcard::before{content:"";position:absolute;left:-1px;top:50%;width:3px;height:36%;transform:translateY(-50%);background:var(--accent);border-radius:0 3px 3px 0;box-shadow:0 0 14px var(--glow)}
+.k{font-size:13px;font-weight:500;letter-spacing:.04em;text-transform:none}
+.tile .v,.bh .v,.rcr b,.rctmp b,.rcb strong,.hud .big,.hud .m,.gs b,.row b{font-family:var(--num);font-weight:600}
+.tile .v{letter-spacing:-.01em}
+.u{font-family:var(--font);font-size:14px;font-weight:500}
+@media(min-width:821px){.tile .v{font-size:clamp(34px,3.9vw,50px)}}
+@media(max-width:820px) and (min-height:521px){.tile .v{font-size:31px}}
+@media(min-height:521px){.bh .v{font-size:32px}.obt{font-size:clamp(30px,8vw,42px)}}
+/* compteur par défaut */
+.arc-bg,#arc{stroke-width:16px}
+.arc-bg{stroke:color-mix(in srgb,var(--text) 7%,var(--track))}
+#arc{stroke:url(#arcG);filter:drop-shadow(0 0 12px var(--glow))}
+.ticks line{stroke:color-mix(in srgb,var(--text) 24%,transparent)}
+.speed{font-family:var(--num);font-weight:600;letter-spacing:-.02em;text-shadow:0 0 44px var(--glow)}
+.su{font-size:14px;font-weight:600;letter-spacing:.5em}
+.gs{font-size:14px;letter-spacing:.12em}.gs b{font-size:27px}
+.segs{gap:4px;height:14px}
+.seg{transform:skewX(-14deg);border-radius:3px}
+.seg.on{box-shadow:0 0 10px var(--glow2)}
+/* boutons et commandes */
+.mode,button.mb,#fsView,#kMode,#mapMode,#recenter,.fsb,.sw,.seg2 button,#panel{clip-path:none}
+.mode{border-radius:16px;border:1px solid var(--line);padding:13px 6px 11px;font-size:19px;letter-spacing:.14em}
+.mode small{font-size:11px;letter-spacing:.06em;opacity:.8}
+.mode.active{border-color:transparent;background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 80%,#fff),var(--accent));box-shadow:0 10px 26px -10px var(--glow)}
+button.mb{border-radius:16px;padding:14px 24px;font-size:14px;letter-spacing:.18em;box-shadow:0 10px 26px -12px var(--glow)}
+button.mb.alt{border:1px solid var(--line);box-shadow:none}
+button.mb.ic{padding:14px 18px}
+.controls{gap:10px;backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5)}
+#fsView,#kMode,#mapMode,.fsb,#q{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+#fsView,#kMode,#mapMode{border-radius:18px;border:1px solid var(--line)}
+#recenter{border-radius:50%;box-shadow:0 10px 26px -10px var(--glow)}
+.fsb{border-radius:999px}
+/* réglages, champs, assistant */
+#panel{border-radius:24px;box-shadow:0 30px 70px -24px #000,var(--hair)}
+.seg2 button{border-radius:12px;border:1px solid var(--line)}.seg2 button.on{border-color:transparent;box-shadow:0 8px 20px -10px var(--glow)}
+#q{border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.num,#wheelIn,.obin{border:1px solid var(--line);border-radius:12px}
+.sw{border-radius:50%;transform:none}.sw.on{transform:scale(1.14)}.sw:active{transform:scale(.9)}
+.gsb{border-radius:16px}.gsb.on{box-shadow:0 0 0 3px var(--glow2)}
+.obhero{border-radius:16px}
+.row{padding:7px 0}
+.obdots i{transform:none;height:3px;border-radius:3px}
+.obt{font-weight:700;letter-spacing:-.01em;line-height:1}
+.obh{letter-spacing:.2em}.obp{font-size:15px}
+
+/* ===== V0.49 : full noir + barre du bas (le reste de l'interface reste celui de V0.46) ===== */
+html[data-theme=dark]{--bg:#000;--panel:#000;--panel2:#0b0b0b;--line:#1f1f1f;--muted:#8a8a8a;--chip:#0f0f0f;--chip2:#151515;--track:#161616;--seg:#1c1c1c;--rail:#141414;--ovl:#000000e8;--barbg:#000000f2;--tick:#333;--mapbg:#000;--surf:linear-gradient(160deg,#0e0e0e,#000 62%)}
+html[data-theme=dark] body{background-image:none}
+.controls{display:none!important}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:12;zoom:var(--ui);display:grid;grid-template-columns:44px repeat(5,1fr) 44px;height:calc(var(--bar) + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);background:var(--barbg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--line)}
+.tabs::before{content:""}
+.tabs button{appearance:none;border:0;background:none;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--muted);font:600 11px var(--font);letter-spacing:.04em;cursor:pointer;transition:color .2s}
+.tabs svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.tabs button.on,.tabs button.sel{color:var(--text)}
+.tabs button.on svg{filter:drop-shadow(0 0 8px color-mix(in srgb,var(--text) 45%,transparent))}
+.tabs button.on::before{content:"";position:absolute;top:-1px;width:38px;height:2px;border-radius:2px;background:var(--accent);box-shadow:0 0 14px 2px var(--glow)}
+.tabs .fsq svg{width:22px;height:22px}
+html.lv .tabs [data-t=connect]{color:var(--ok)}
+html:not(.lv) .tabs [data-t=connect] svg{animation:cnPulse 2.6s ease-in-out infinite}
+html.fs .tabs{display:none}
+.tabs button:focus-visible,.tsw button:focus-visible{outline:2px solid var(--text);outline-offset:-4px}
+/* Trajet : bascule Carte / Stats */
+.tsw{display:flex;gap:2px;padding:3px;background:var(--ovl);border:1px solid var(--line);border-radius:999px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.tsw button{appearance:none;border:0;cursor:pointer;background:none;color:var(--muted);font:700 12px var(--font);letter-spacing:.12em;padding:7px 16px;border-radius:999px;transition:background .2s,color .2s}
+.tsw button.on{background:var(--text);color:var(--bg)}
+#gps .tsw{left:12px;top:64px}
+#recap .tsw{width:max-content;margin:0 0 14px}
+/* paysage : on rétablit les tailles compactes d'origine, que les styles V0.46 écrasaient */
+@media(orientation:landscape) and (max-height:520px){
+ header{padding:6px 16px 4px}.logo{font-size:18px}.status{padding:4px 10px}
+ .tile{padding:8px 10px 7px 14px}.bat{padding:6px 12px}.segs{height:9px;gap:3px}
+ .mode{padding:6px 4px 5px;font-size:14px}button.mb{padding:9px 16px}.row{padding:3px 0}.rcard{padding:10px 14px}
+ .tabs{grid-template-columns:36px repeat(5,1fr) 36px}.tabs span{display:none}.tabs svg{width:24px;height:24px}.tabs .fsq svg{width:20px;height:20px}
+}
 </style>
 </head>
 <body>
@@ -465,7 +560,7 @@ html:not(.lv) #connect:not(:disabled){animation:cnPulse 2.6s ease-in-out infinit
  </section>
  <section class="col mid">
   <div class="gauge">
-   <svg viewBox="0 0 400 340" aria-hidden="true">
+   <svg viewBox="0 0 400 340" aria-hidden="true"><defs><linearGradient id="arcG" gradientUnits="userSpaceOnUse" x1="60" y1="0" x2="340" y2="0"><stop offset="0" style="stop-color:color-mix(in srgb,var(--accent) 55%,#000)"/><stop offset="1" style="stop-color:color-mix(in srgb,var(--accent) 65%,#fff)"/></linearGradient></defs>
     <path class="arc-bg" d="M 79.8 320.2 A 170 170 0 1 1 320.2 320.2" fill="none" stroke-width="22" pathLength="100"/>
     <path id="arc" d="M 79.8 320.2 A 170 170 0 1 1 320.2 320.2" fill="none" stroke-width="22" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/>
     <g class="ticks" id="ticks"></g>
@@ -631,6 +726,7 @@ html:not(.lv) #connect:not(:disabled){animation:cnPulse 2.6s ease-in-out infinit
 </main>
 
 <section id="recap" aria-label="Récapitulatif du trajet">
+ <div class="tsw"><button data-v="gps">CARTE</button><button data-v="recap" class="on">STATS</button></div>
  <div class="rwrap">
   <div class="rcard"><div class="rh">DEPUIS LE DÉMARRAGE</div><div id="sinceRows"></div></div>
   <div class="rcard"><div class="rh">TRAJET</div><div id="tripRows"></div>
@@ -648,6 +744,7 @@ html:not(.lv) #connect:not(:disabled){animation:cnPulse 2.6s ease-in-out infinit
 
 <section id="gps" aria-label="Carte GPS">
  <div id="map"></div>
+ <div class="ov tsw"><button data-v="gps" class="on">CARTE</button><button data-v="recap">STATS</button></div>
  <div id="mapmsg">Carte indisponible : connexion internet requise pour charger OpenStreetMap.</div>
  <form class="ov search" id="sform"><input id="q" type="search" placeholder="Destination" enterkeyhint="search" autocomplete="off"><button class="mb">GO</button></form>
  <div class="ov" id="navinfo" hidden><span id="navtxt"></span><button id="navclear" aria-label="Effacer l'itinéraire">✕</button></div>
@@ -746,7 +843,7 @@ html:not(.lv) #connect:not(:disabled){animation:cnPulse 2.6s ease-in-out infinit
  <label class="cp">Tension mini / cellule (V) <input class="num" type="number" id="cellMin" min="2" max="4" step="0.05" value="2.8" inputmode="decimal"></label>
  <label class="cp">Tension maxi / cellule (V) <input class="num" type="number" id="cellMax" min="3" max="4.5" step="0.05" value="4.2" inputmode="decimal"></label>
  <div class="hint" id="battHint"></div>
- <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="mb alt" id="resetSet" style="padding:10px 16px;font-size:12px">RÉINITIALISER</button><button class="mb alt" id="obAgain" style="padding:10px 16px;font-size:12px">ASSISTANT</button></div>
+ <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="mb alt" id="demo2" style="padding:10px 16px;font-size:12px">DÉMO</button><button class="mb alt" id="resetSet" style="padding:10px 16px;font-size:12px">RÉINITIALISER</button><button class="mb alt" id="obAgain" style="padding:10px 16px;font-size:12px">ASSISTANT</button></div>
 </div>
 
 <button id="kMode" aria-label="Changer de mode"><span id="kModeTxt">ECO</span><small>MODE</small></button>
@@ -761,6 +858,14 @@ html:not(.lv) #connect:not(:disabled){animation:cnPulse 2.6s ease-in-out infinit
  <button class="mb alt ic" id="fullscreen" aria-label="Plein écran"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg></button>
 </div>
 
+<nav class="tabs" id="tabs" aria-label="Navigation">
+ <button data-t="connect" aria-label="Connexion" title="Connexion"><svg viewBox="0 0 24 24"><path d="M9 3v5M15 3v5M7 8h10v3a5 5 0 0 1-10 0V8zM12 16v5"/></svg><span>Connexion</span></button>
+ <button data-t="modes" aria-label="Contrôleur et modes" title="Contrôleur"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/></svg><span>Contrôleur</span></button>
+ <button data-t="dash" class="on" aria-label="Tableau de bord" title="Dash"><svg viewBox="0 0 24 24"><path d="M4.5 17a8.5 8.5 0 1 1 15 0"/><path d="M12 13.5l3.5-4.5"/></svg><span>Dash</span></button>
+ <button data-t="trajet" aria-label="Trajet et carte GPS" title="Trajet"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><span>Trajet</span></button>
+ <button data-t="set" aria-label="Réglages" title="Réglages"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Réglages</span></button>
+ <button class="fsq" data-t="fs" aria-label="Plein écran" title="Plein écran"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg></button>
+</nav>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 const $=id=>document.getElementById(id),Q=s=>document.querySelectorAll(s);
@@ -1564,6 +1669,24 @@ applyTheme(false);
 /* Premier lancement : l'assistant s'ouvre. Les anciens utilisateurs (réglages déjà enregistrés) ne le voient pas. */
 let needOb=false;try{needOb=!localStorage.getItem("vescOnboarded")&&!localStorage.getItem("vescSettings")}catch(e){}
 if(needOb)obOpenWiz();else bootSweep();
+</script>
+<script>
+(()=>{const $=id=>document.getElementById(id),T=$("tabs"),_sv=window.showView;let sub="gps";
+const setOn=v=>{if(v==="gps"||v==="recap")sub=v;
+ T.querySelectorAll("button[data-t]").forEach(b=>b.classList.toggle("on",b.dataset.t===v||(b.dataset.t==="trajet"&&(v==="gps"||v==="recap"))));
+ document.querySelectorAll(".tsw button").forEach(b=>b.classList.toggle("on",b.dataset.v===v))};
+window.showView=v=>{_sv(v);setOn(v)};
+setOn(typeof curView!=="undefined"?curView:"dash");
+T.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const t=b.dataset.t;
+ if(t==="connect")$("connect").click();
+ else if(t==="fs")$("fullscreen").click();
+ else if(t==="set"){e.stopPropagation();$("styleBtn").click()}/* sans stopPropagation, le clic d'origine refermerait aussitôt le panneau */
+ else showView(t==="trajet"?sub:t)});
+document.querySelectorAll(".tsw button").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.v)));
+new MutationObserver(()=>T.querySelector("[data-t=set]").classList.toggle("sel",$("styleBtn").classList.contains("open"))).observe($("styleBtn"),{attributes:true,attributeFilter:["class"]});
+const d2=$("demo2");d2.onclick=()=>$("demo").click();
+new MutationObserver(()=>{d2.textContent=$("demo").textContent}).observe($("demo"),{childList:true,characterData:true,subtree:true});
+})();
 </script>
 </body>
 </html>
