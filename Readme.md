@@ -8,9 +8,9 @@ L'objectif est de proposer une interface moderne, intuitive et adaptée à une u
 
 ## 🚀 Dernière version
 
-**Version actuelle :** V0.48
+**Version actuelle :** V0.52
 
-👉 [**Accéder à la dernière version du VESC Dashboard**](https://clementdbs2-del.github.io/23/Pre-Releases/V0.48.html)
+👉 [**Accéder à la dernière version du VESC Dashboard**](https://clementdbs2-del.github.io/23/Pre-Releases/V0.52.html)
 
 ## ✨ Fonctionnalités
 
