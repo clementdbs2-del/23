@@ -1,6 +1,6 @@
 {
-  "name": "VESC DASH",
-  "short_name": "VESC DASH",
+  "name": "VESC Dashboard",
+  "short_name": "VESC Dash",
   "description": "Tableau de bord VESC via Bluetooth",
   "lang": "fr",
   "start_url": "./index.html",

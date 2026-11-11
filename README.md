@@ -6,11 +6,21 @@ VESC Dashboard est un projet d'interface embarquée conçu pour transformer un s
 
 L'objectif est de proposer une interface moderne, intuitive et adaptée à une utilisation en roulant.
 
-## 🚀 Dernière version
+## 📱 L'application principale
+
+L'application installable sur Android (PWA) se trouve dans le dossier [`app/`](app/) :
+
+👉 [**Ouvrir l'application VESC Dashboard**](https://clementdbs2-del.github.io/vesc-dashboard/app/)
+
+Depuis Chrome Android : `⋮` → **Ajouter à l'écran d'accueil** pour l'installer comme une vraie application (fonctionne hors ligne grâce au cache).
+
+## 🚀 Dernière version web
 
 **Version actuelle :** V0.70
 
-👉 [**Accéder à la dernière version du VESC Dashboard**](https://clementdbs2-del.github.io/23/Pre-Releases/V0.70.html)
+👉 [**Accéder à la dernière version du VESC Dashboard**](https://clementdbs2-del.github.io/vesc-dashboard/Pre-Releases/V0.70.html)
+
+Les versions antérieures sont conservées dans le dossier [`Pre-Releases/`](Pre-Releases/).
 
 ## ✨ Fonctionnalités
 
