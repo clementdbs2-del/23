@@ -580,14 +580,14 @@ html,body{max-width:100vw;overflow-x:hidden}
 /* Assistant du premier lancement */
 #ob{position:fixed;inset:0;z-index:60;background:var(--bg);color:var(--text);font-family:var(--font);display:flex;justify-content:center;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 #ob[hidden]{display:none}
-.obw{width:min(560px,100%);height:100%;display:flex;flex-direction:column;padding:14px 16px;gap:12px}
+.obw{width:100%;height:100%;display:flex;flex-direction:column;padding:14px clamp(14px,3vw,48px);gap:12px}
 .obtop{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .obdots{display:flex;gap:6px;flex:1;max-width:220px}
 .obdots i{flex:1;height:4px;background:var(--seg);transform:skewX(-20deg);transition:background .3s}
 .obdots i.on{background:var(--accent)}
 .obskip{appearance:none;background:none;border:0;color:var(--muted);font:700 12px var(--font);letter-spacing:3px;cursor:pointer;padding:8px 0 8px 8px}
 .obskip[hidden]{display:none}
-.obbody{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.obbody{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
 .obs{display:none;flex-direction:column;gap:12px;padding-bottom:6px}
 .obs.on{display:flex}
 .obs.on>*{animation:riseIn .45s cubic-bezier(.2,.8,.2,1) both}
@@ -611,6 +611,19 @@ html,body{max-width:100vw;overflow-x:hidden}
 .obnav{display:flex;gap:10px}.obnav .mb{flex:1}
 @media(orientation:landscape) and (max-height:520px){.obw{padding:8px 14px;gap:8px}.obt{font-size:22px}.obp{min-height:0;font-size:13px}.obs{gap:8px}}
 @media(min-width:520px){#ob .gsg{grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* Assistant adaptatif : 2 colonnes dès que la fenêtre est assez large, 1 colonne sur téléphone */
+.obL,.obR{display:flex;flex-direction:column;gap:12px;min-width:0}
+@media(min-width:768px){
+ #ob{zoom:.8;width:125vw;height:125dvh;overflow:hidden}
+ #ob .obs.on{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(0,.94fr);column-gap:clamp(18px,4vw,72px);align-items:start}
+ #ob .obs.on>.obL,#ob .obs.on>.obR{gap:clamp(10px,1.4vh,16px)}
+ .obt{font-size:clamp(28px,3.2vw,50px)}
+ .obp{min-height:0}
+ .obhero{width:min(100%,clamp(260px,26vw,440px))}
+}
+@media(max-height:520px) and (pointer:coarse){
+ #ob .obs.on{display:flex;flex-direction:column}
+}
 
 /* Animations et retours tactiles */
 @keyframes riseIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
@@ -893,52 +906,72 @@ html[data-gstyle=varg] .kstats strong{font-size:clamp(15px,3.4vh,20px)}
   <div class="obtop"><div class="obdots" id="obDots"><i></i><i></i><i></i><i></i><i></i></div><button class="obskip" id="obSkip">PASSER</button></div>
   <div class="obbody" id="obBody">
    <section class="obs">
-    <div class="obh">BIENVENUE</div><h1 class="obt">VESC DASH</h1>
-    <p class="obp">Configurons ton tableau de bord en quelques étapes. Tout reste modifiable plus tard dans les paramètres.</p>
-    <div class="gsb obhero" id="obHero" aria-hidden="true"></div>
-    <div class="k">Thème</div>
-    <div class="seg2"><button data-th="dark">SOMBRE</button><button data-th="light">CLAIR</button></div>
-    <div class="k">Couleur principale</div>
-    <div class="sws" id="obSws"></div>
-    <label class="cp">Personnalisée <input type="color" id="obCpick" value="#2f7bff"></label>
-    <div class="k">Sons</div>
-    <div class="seg2"><button data-sn="1">ACTIVÉS</button><button data-sn="0">COUPÉS</button></div>
+    <div class="obL">
+     <div class="obh">BIENVENUE</div><h1 class="obt">VESC DASH</h1>
+     <p class="obp">Configurons ton tableau de bord en quelques étapes. Tout reste modifiable plus tard dans les paramètres.</p>
+     <div class="gsb obhero" id="obHero" aria-hidden="true"></div>
+    </div>
+    <div class="obR">
+     <div class="k">Thème</div>
+     <div class="seg2"><button data-th="dark">SOMBRE</button><button data-th="light">CLAIR</button></div>
+     <div class="k">Couleur principale</div>
+     <div class="sws" id="obSws"></div>
+     <label class="cp">Personnalisée <input type="color" id="obCpick" value="#2f7bff"></label>
+     <div class="k">Sons</div>
+     <div class="seg2"><button data-sn="1">ACTIVÉS</button><button data-sn="0">COUPÉS</button></div>
+    </div>
    </section>
    <section class="obs">
-    <div class="obh">COMPTEUR</div><h2 class="obt">Choisis ton style</h2>
-    <p class="obp" id="obGsDesc"></p>
-    <div class="gsg" id="obGs"></div>
-    <div class="k">Taille de l'interface <b id="obUiVal">80%</b></div>
-    <input type="range" id="obUi" min="60" max="120" step="5" value="80" aria-label="Taille de l'interface">
+    <div class="obL">
+     <div class="obh">COMPTEUR</div><h2 class="obt">Choisis ton style</h2>
+     <p class="obp" id="obGsDesc"></p>
+     <div class="k">Taille de l'interface <b id="obUiVal">80%</b></div>
+     <input type="range" id="obUi" min="60" max="120" step="5" value="80" aria-label="Taille de l'interface">
+    </div>
+    <div class="obR">
+     <div class="gsg" id="obGs"></div>
+    </div>
    </section>
    <section class="obs">
-    <div class="obh">VÉHICULE</div><h2 class="obt">Roue et moteur</h2>
-    <div class="k">Taille de roue (pouces)</div>
-    <div class="seg2 s6"><button data-w="8">8″</button><button data-w="10">10″</button><button data-w="11">11″</button><button data-w="12">12″</button><button data-w="14">14″</button><button data-w="16">16″</button></div>
-    <label class="cp">Autre taille <input class="obin" type="number" id="obWheel" min="6" max="30" step="any" value="10" inputmode="decimal"></label>
-    <label class="cp">Pôles moteur <input class="obin" type="number" id="obPoles" min="2" max="60" step="2" value="30" inputmode="numeric"></label>
-    <label class="cp">Réduction (moteur : roue) <input class="obin" type="number" id="obGear" min="0.1" max="30" step="any" value="1" inputmode="decimal"></label>
-    <div class="hint">Diamètre pneu compris. 30 pôles = 15 paires, courant sur un moteur de roue. Réduction : 1 en entraînement direct. Ces valeurs servent au calcul des km/h et des distances.</div>
-    <div class="k">Source de la vitesse</div>
-    <div class="seg2 s3"><button data-src="auto">AUTO</button><button data-src="vesc">VESC</button><button data-src="gps">GPS</button></div>
-    <div class="hint">AUTO : VESC si connecté, sinon GPS. Le GPS demande l'autorisation de localisation.</div>
+    <div class="obL">
+     <div class="obh">VÉHICULE</div><h2 class="obt">Roue et moteur</h2>
+     <div class="k">Taille de roue (pouces)</div>
+     <div class="seg2 s6"><button data-w="8">8″</button><button data-w="10">10″</button><button data-w="11">11″</button><button data-w="12">12″</button><button data-w="14">14″</button><button data-w="16">16″</button></div>
+     <label class="cp">Autre taille <input class="obin" type="number" id="obWheel" min="6" max="30" step="any" value="10" inputmode="decimal"></label>
+    </div>
+    <div class="obR">
+     <label class="cp">Pôles moteur <input class="obin" type="number" id="obPoles" min="2" max="60" step="2" value="30" inputmode="numeric"></label>
+     <label class="cp">Réduction (moteur : roue) <input class="obin" type="number" id="obGear" min="0.1" max="30" step="any" value="1" inputmode="decimal"></label>
+     <div class="hint">Diamètre pneu compris. 30 pôles = 15 paires, courant sur un moteur de roue. Réduction : 1 en entraînement direct. Ces valeurs servent au calcul des km/h et des distances.</div>
+     <div class="k">Source de la vitesse</div>
+     <div class="seg2 s3"><button data-src="auto">AUTO</button><button data-src="vesc">VESC</button><button data-src="gps">GPS</button></div>
+     <div class="hint">AUTO : VESC si connecté, sinon GPS. Le GPS demande l'autorisation de localisation.</div>
+    </div>
    </section>
    <section class="obs">
-    <div class="obh">BATTERIE</div><h2 class="obt">Ta batterie</h2>
-    <div class="k">Nombre de cellules en série</div>
-    <div class="seg2 s6"><button data-s="10">10S</button><button data-s="12">12S</button><button data-s="14">14S</button><button data-s="16">16S</button><button data-s="20">20S</button><button data-s="24">24S</button></div>
-    <label class="cp">Autre valeur (S) <input class="obin" type="number" id="obCells" min="3" max="30" step="1" value="14" inputmode="numeric"></label>
-    <div class="hint" id="obBattHint"></div>
-    <details class="obadv"><summary>Réglages avancés</summary>
-     <label class="cp">Tension mini / cellule (V) <input class="obin" type="number" id="obCellMin" min="2" max="4" step="0.05" value="2.8" inputmode="decimal"></label>
-     <label class="cp">Tension maxi / cellule (V) <input class="obin" type="number" id="obCellMax" min="3" max="4.5" step="0.05" value="4.2" inputmode="decimal"></label>
-    </details>
+    <div class="obL">
+     <div class="obh">BATTERIE</div><h2 class="obt">Ta batterie</h2>
+     <div class="k">Nombre de cellules en série</div>
+     <div class="seg2 s6"><button data-s="10">10S</button><button data-s="12">12S</button><button data-s="14">14S</button><button data-s="16">16S</button><button data-s="20">20S</button><button data-s="24">24S</button></div>
+     <label class="cp">Autre valeur (S) <input class="obin" type="number" id="obCells" min="3" max="30" step="1" value="14" inputmode="numeric"></label>
+     <div class="hint" id="obBattHint"></div>
+    </div>
+    <div class="obR">
+     <details class="obadv"><summary>Réglages avancés</summary>
+      <label class="cp">Tension mini / cellule (V) <input class="obin" type="number" id="obCellMin" min="2" max="4" step="0.05" value="2.8" inputmode="decimal"></label>
+      <label class="cp">Tension maxi / cellule (V) <input class="obin" type="number" id="obCellMax" min="3" max="4.5" step="0.05" value="4.2" inputmode="decimal"></label>
+     </details>
+    </div>
    </section>
    <section class="obs">
-    <div class="obh">TERMINÉ</div><h2 class="obt">Tout est prêt</h2>
-    <div class="obrecap" id="obRecap"></div>
-    <p class="obp">Les modes de conduite se règlent dans la page MODES. Tu peux relancer cet assistant depuis les paramètres.</p>
-    <button class="mb alt" id="obDemo" style="align-self:flex-start">ESSAYER LA DÉMO</button>
+    <div class="obL">
+     <div class="obh">TERMINÉ</div><h2 class="obt">Tout est prêt</h2>
+     <p class="obp">Les modes de conduite se règlent dans la page MODES. Tu peux relancer cet assistant depuis les paramètres.</p>
+     <button class="mb alt" id="obDemo" style="align-self:flex-start">ESSAYER LA DÉMO</button>
+    </div>
+    <div class="obR">
+     <div class="obrecap" id="obRecap"></div>
+    </div>
    </section>
   </div>
   <div class="obnav"><button class="mb alt" id="obBack">RETOUR</button><button class="mb" id="obNext">SUIVANT</button></div>
