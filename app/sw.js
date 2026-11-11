@@ -1,4 +1,4 @@
-const VER = "v1";
+const VER = "v2";
 const SHELL = `vescdash-shell-${VER}`;
 const RUNTIME = `vescdash-rt-${VER}`;
 const TILES = `vescdash-tiles-${VER}`;
