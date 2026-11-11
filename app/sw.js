@@ -1,4 +1,4 @@
-const VER = "v2";
+const VER = "v3";
 const SHELL = `vescdash-shell-${VER}`;
 const RUNTIME = `vescdash-rt-${VER}`;
 const TILES = `vescdash-tiles-${VER}`;
@@ -49,8 +49,23 @@ self.addEventListener("fetch", e => {
   // Never cache routing / geocoding
   if (url.hostname.includes("osrm.org") || url.hostname.includes("nominatim")) return;
 
-  // App shell: stale-while-revalidate
+  // App shell
   if (url.origin === location.origin) {
+    // Navigation (HTML) : réseau d'abord, pour que les mises à jour soient visibles dès l'ouverture
+    if (req.mode === "navigate") {
+      e.respondWith((async () => {
+        const cache = await caches.open(SHELL);
+        try {
+          const r = await fetch(req, { cache: "reload" });
+          if (r.ok) cache.put(req, r.clone());
+          return r;
+        } catch (_) {
+          return (await cache.match(req, { ignoreSearch: true })) || (await cache.match("./index.html")) || Response.error();
+        }
+      })());
+      return;
+    }
+    // Autres fichiers locaux (icônes, manifest…) : stale-while-revalidate
     e.respondWith((async () => {
       const cache = await caches.open(SHELL);
       const hit = await cache.match(req, { ignoreSearch: true });
