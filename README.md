@@ -8,13 +8,19 @@ L'objectif est de proposer une interface moderne, intuitive et adaptée à une u
 
 ## 📱 L'application principale
 
-L'application installable (PWA) se trouve dans le dossier [`app/`](app/) :
+### 🤖 Android — Application (PWA)
+
+L'application installable sur Android (PWA) se trouve dans le dossier [`app/`](app/) :
 
 👉 [**Ouvrir l'application VESC Dashboard**](https://clementdbs2-del.github.io/vesc-dashboard/app/)
 
-**🤖 Android :** depuis Chrome, `⋮` → **Ajouter à l'écran d'accueil** pour l'installer comme une vraie application (fonctionne hors ligne grâce au cache).
+Depuis Chrome : `⋮` → **Ajouter à l'écran d'accueil** pour l'installer comme une vraie application (fonctionne hors ligne grâce au cache).
 
-**🍏 iOS (iPhone / iPad) :** le tableau de bord fonctionne aussi sur iOS, mais Safari ne supporte pas le Bluetooth web. Ouvrez le lien ci-dessus dans le navigateur [**Bluefy**](https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055) (gratuit sur l'App Store) pour la connexion au VESC.
+### 🍏 iOS — Navigateur Bluefy
+
+Sur iPhone / iPad, Safari ne supporte pas le Bluetooth web. Pour la connexion au VESC, ouvrez l'application dans le navigateur [**Bluefy**](https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055) (gratuit sur l'App Store) :
+
+👉 [**Ouvrir l'application dans Bluefy**](https://clementdbs2-del.github.io/vesc-dashboard/app/)
 
 ## 🚀 Dernière version web
 
