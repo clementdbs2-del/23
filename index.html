@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="VESC Dashboard by KROSOVO — Tableau de bord connecté pour VESC : compteur, navigation GPS, historique de balades et modes de conduite.">
+<meta property="og:title" content="VESC Dashboard by KROSOVO">
+<meta property="og:description" content="Tableau de bord connecté pour VESC — compteur, GPS, historique et modes de conduite.">
+<meta property="og:url" content="https://clementdbs2-del.github.io/vesc-dashboard/">
+<meta name="theme-color" content="#060a13">
+<title>VESC Dashboard by KROSOVO</title>
+<link rel="icon" type="image/png" href="app/icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#060a13;--panel:#0d131d;--panel2:#131b28;--line:#1f2937;
+  --text:#e9eef7;--muted:#7f8da3;--accent:#2f7bff;--ok:#5dd67f;
+  --glow:color-mix(in srgb,var(--accent) 55%,transparent);
+  --glow2:color-mix(in srgb,var(--accent) 14%,transparent);
+  --font:"Sora","Segoe UI",Arial,sans-serif;
+  --cond:"Barlow Condensed","Arial Narrow",sans-serif;
+  color-scheme:dark;
+}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);scroll-behavior:smooth}
+body{
+  background-image:
+    radial-gradient(ellipse 60% 40% at 50% -5%,var(--glow2),transparent 70%),
+    radial-gradient(ellipse 40% 30% at 85% 15%,rgba(93,214,127,.06),transparent 70%),
+    repeating-linear-gradient(135deg,rgba(255,255,255,.012) 0 1px,transparent 1px 14px);
+  min-height:100vh;
+}
+a{color:var(--accent);text-decoration:none}
+::selection{background:var(--accent);color:#fff}
+.wrap{max-width:1060px;margin:0 auto;padding:0 22px}
+
+/* ---------- nav ---------- */
+nav{position:sticky;top:0;z-index:50;background:#060a13d9;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:18px;height:60px}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--cond);font-weight:700;font-size:19px;letter-spacing:1.5px;color:var(--text)}
+.logo .bolt{width:26px;height:26px;flex:0 0 auto}
+.logo .bolt path{fill:var(--accent)}
+.logo small{color:var(--muted);font-size:11px;letter-spacing:2px;font-weight:500}
+nav .links{display:flex;gap:4px;margin-left:auto}
+nav .links a{color:var(--muted);font-size:13.5px;font-weight:600;padding:8px 12px;border-radius:9px;letter-spacing:.4px}
+nav .links a:hover{color:var(--text);background:var(--panel2)}
+.lang{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-left:6px}
+.lang button{background:none;border:0;color:var(--muted);font:600 12px var(--font);padding:6px 12px;cursor:pointer;letter-spacing:.5px}
+.lang button.on{background:var(--accent);color:#fff}
+nav .links{margin-left:auto}
+
+/* ---------- hero ---------- */
+header{padding:88px 0 70px;text-align:center;position:relative;overflow:hidden}
+header::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 45% 55% at 50% 0%,var(--glow2),transparent 70%);pointer-events:none}
+.badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:#0d131dcc;border-radius:999px;padding:7px 16px;font-size:12.5px;color:var(--muted);letter-spacing:1.2px;font-weight:600}
+.badge .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok);animation:pulse 2.2s infinite}
+@keyframes pulse{50%{opacity:.4}}
+h1{margin:22px 0 10px;font-family:var(--cond);font-weight:700;font-size:clamp(52px,9vw,96px);line-height:.95;letter-spacing:1px;
+   background:linear-gradient(180deg,var(--text),color-mix(in srgb,var(--text) 62%,transparent));
+   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+h1 .ac{-webkit-text-fill-color:var(--accent);background:none}
+.tagline{max-width:620px;margin:14px auto 0;color:var(--muted);font-size:16.5px;line-height:1.65;font-weight:300}
+.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:34px}
+.btn{display:inline-flex;align-items:center;gap:9px;border:0;border-radius:12px;padding:13px 24px;font:600 14.5px var(--font);cursor:pointer;letter-spacing:.3px;transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn.p{background:var(--accent);color:#fff;box-shadow:0 6px 24px -6px var(--glow)}
+.btn.p:hover{box-shadow:0 10px 30px -6px var(--glow)}
+.btn.g{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+.btn.g:hover{border-color:#33415a}
+.btn.o{background:none;color:var(--muted);border:1px solid var(--line)}
+.btn.o:hover{color:var(--text);border-color:#33415a}
+.stats{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:44px}
+.stat{border:1px solid var(--line);background:#0d131daa;border-radius:14px;padding:12px 22px;min-width:120px}
+.stat b{display:block;font-family:var(--cond);font-size:26px;font-weight:700;color:var(--accent);letter-spacing:.5px}
+.stat span{font-size:11.5px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+
+/* ---------- sections ---------- */
+section{padding:64px 0}
+section h2{font-family:var(--cond);font-weight:700;font-size:clamp(30px,4.5vw,42px);letter-spacing:1px;margin:0 0 8px}
+.kicker{color:var(--accent);font:600 12px var(--font);letter-spacing:2.5px;text-transform:uppercase}
+.lead{color:var(--muted);max-width:640px;line-height:1.7;font-size:15.5px;font-weight:300}
+
+/* project */
+.proj{display:grid;grid-template-columns:1.15fr .85fr;gap:34px;align-items:start;margin-top:26px}
+.proj .txt p{color:var(--muted);line-height:1.75;font-size:15.5px;font-weight:300;margin:0 0 16px}
+.proj .txt p b{color:var(--text);font-weight:600}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px 24px}
+.card h3{margin:0 0 14px;font-size:15px;letter-spacing:1px;color:var(--text)}
+.card ul{margin:0;padding:0;list-style:none}
+.card li{display:flex;gap:10px;align-items:baseline;padding:7px 0;color:var(--muted);font-size:14px;line-height:1.5;border-bottom:1px dashed #1a2334}
+.card li:last-child{border:0}
+.card li::before{content:"⚡";font-size:11px;color:var(--accent);flex:0 0 auto;transform:translateY(-1px)}
+
+/* features */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:30px}
+.f{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;transition:border-color .2s,transform .2s,box-shadow .2s;position:relative;overflow:hidden}
+.f::after{content:"";position:absolute;inset:0;background:radial-gradient(circle 120px at 85% -10%,var(--glow2),transparent);opacity:0;transition:opacity .25s}
+.f:hover{border-color:#33415a;transform:translateY(-3px);box-shadow:0 14px 34px -18px #000}
+.f:hover::after{opacity:1}
+.f .ic{width:42px;height:42px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.f .ic svg{width:21px;height:21px;stroke:var(--accent);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.f h3{margin:0 0 8px;font-size:16px;font-weight:600}
+.f p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.65;font-weight:300}
+
+/* versions */
+.latest{margin-top:28px;border-radius:20px;padding:1.5px;background:linear-gradient(120deg,var(--accent),transparent 55%,var(--ok))}
+.latest .in{background:var(--panel);border-radius:19px;padding:24px 26px;display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.latest .tag{font:700 11px var(--font);letter-spacing:2px;color:var(--ok);border:1px solid color-mix(in srgb,var(--ok) 45%,transparent);border-radius:999px;padding:5px 13px}
+.latest .v{font-family:var(--cond);font-weight:700;font-size:44px;color:var(--text);line-height:1}
+.latest .d{color:var(--muted);font-size:13.5px;flex:1;min-width:200px;line-height:1.6}
+.latest .go{margin-left:auto}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;margin-top:22px}
+.chip{position:relative;display:flex;justify-content:center;align-items:center;height:42px;border:1px solid var(--line);border-radius:10px;background:#0d131d99;
+      font-family:var(--cond);font-weight:600;font-size:16px;letter-spacing:.5px;color:var(--muted);transition:all .15s}
+.chip:hover{color:#fff;border-color:var(--accent);background:var(--panel2);transform:translateY(-2px);box-shadow:0 6px 16px -8px var(--glow)}
+.chip.hot{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 55%,transparent)}
+.chip small{position:absolute;top:-8px;right:6px;background:var(--accent);color:#fff;font:700 8px var(--font);letter-spacing:1px;border-radius:999px;padding:2px 6px}
+.vnote{color:var(--muted);font-size:12.5px;margin-top:16px}
+
+/* support */
+.support .card{margin-top:28px;display:flex;gap:24px;align-items:center;flex-wrap:wrap;padding:26px 28px}
+.support .card .tx{flex:1;min-width:240px}
+.support h3{margin:0 0 8px;font-size:18px}
+.support p{margin:0;color:var(--muted);font-size:14px;line-height:1.65;font-weight:300}
+.dc{display:inline-flex;align-items:center;gap:10px}
+.dc svg{width:20px;height:20px;fill:#fff}
+
+/* footer */
+footer{border-top:1px solid var(--line);padding:34px 0 44px;color:var(--muted);font-size:12.5px}
+footer .wrap{display:flex;gap:16px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+footer a{color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+footer a:hover{color:var(--text)}
+
+/* modal */
+.ovl{position:fixed;inset:0;background:#030610cc;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:100;display:none;align-items:center;justify-content:center;padding:22px}
+.ovl.on{display:flex}
+.modal{background:var(--panel);border:1px solid #33415a;border-radius:20px;max-width:440px;width:100%;padding:30px 30px 26px;box-shadow:0 30px 80px -20px #000;position:relative}
+.modal h3{margin:0 0 10px;font-size:19px}
+.modal p{margin:0 0 18px;color:var(--muted);font-size:14px;line-height:1.7;font-weight:300}
+.pseudo{display:flex;gap:8px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:14px}
+.pseudo b{font-family:var(--cond);font-size:19px;letter-spacing:1.5px;color:var(--text)}
+.pseudo button{margin-left:auto;background:var(--accent);color:#fff;border:0;border-radius:8px;font:600 12px var(--font);padding:8px 14px;cursor:pointer}
+.pseudo button:hover{filter:brightness(1.12)}
+.modal .note{font-size:12px;color:var(--muted);line-height:1.6}
+.modal .x{position:absolute;top:14px;right:14px;background:none;border:0;color:var(--muted);font-size:22px;cursor:pointer;line-height:1}
+.modal .x:hover{color:var(--text)}
+
+@media(max-width:820px){
+  .proj{grid-template-columns:1fr}
+  nav .links a{display:none}
+  header{padding:64px 0 54px}
+}
+@media(max-width:560px){
+  .stats{gap:8px}.stat{min-width:100px;padding:10px 14px}
+  .latest .in{gap:14px}.latest .v{font-size:36px}.latest .go{margin-left:0;width:100%}
+  .btn{padding:12px 18px;font-size:13.5px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="logo" href="#top">
+      <svg class="bolt" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>
+      VESC DASH <small>by KROSOVO</small>
+    </a>
+    <div class="links">
+      <a href="#projet" data-fr="Le projet" data-en="The project">Le projet</a>
+      <a href="#fonctionnalites" data-fr="Fonctionnalités" data-en="Features">Fonctionnalités</a>
+      <a href="#versions" data-fr="Versions" data-en="Versions">Versions</a>
+      <a href="#support" data-fr="Support" data-en="Support">Support</a>
+      <div class="lang" role="group" aria-label="Language">
+        <button id="langFr" class="on" onclick="setLang('fr')">FR</button>
+        <button id="langEn" onclick="setLang('en')">EN</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header id="top">
+  <div class="wrap">
+    <span class="badge"><span class="dot"></span><span data-fr="Tableau de bord connecté pour VESC" data-en="Connected dashboard for VESC">Tableau de bord connecté pour VESC</span></span>
+    <h1>VESC <span class="ac">DASHBOARD</span></h1>
+    <p class="tagline" data-fr="Transformez votre smartphone en véritable écran de contrôle pour votre trottinette ou véhicule électrique équipé d'un contrôleur VESC : vitesse, batterie, navigation GPS et historique de vos balades."
+       data-en="Turn your smartphone into a real control screen for your electric scooter or vehicle powered by a VESC controller: speed, battery, GPS navigation and ride history.">
+      Transformez votre smartphone en véritable écran de contrôle pour votre trottinette ou véhicule électrique équipé d'un contrôleur VESC : vitesse, batterie, navigation GPS et historique de vos balades.</p>
+    <div class="cta">
+      <a class="btn p" href="app/">⚡ <span data-fr="Ouvrir l'application" data-en="Open the app">Ouvrir l'application</span></a>
+      <a class="btn g" href="Pre-Releases/V0.70.html"><span data-fr="Dernière version — V0.70" data-en="Latest version — V0.70">Dernière version — V0.70</span></a>
+      <button class="btn o" onclick="openModal()"><span data-fr="Signaler un problème" data-en="Report an issue">Signaler un problème</span></button>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>60</b><span data-fr="versions publiées" data-en="published versions">versions publiées</span></div>
+      <div class="stat"><b>3</b><span data-fr="modes de conduite" data-en="riding modes">modes de conduite</span></div>
+      <div class="stat"><b>PWA</b><span data-fr="hors ligne" data-en="works offline">hors ligne</span></div>
+      <div class="stat"><b>2</b><span data-fr="plateformes" data-en="platforms">plateformes</span></div>
+    </div>
+  </div>
+</header>
+
+<section id="projet">
+  <div class="wrap">
+    <div class="kicker" data-fr="Le projet" data-en="The project">Le projet</div>
+    <h2>Un écran de contrôle <span style="color:var(--accent)">100 % personnalisé</span></h2>
+    <div class="proj">
+      <div class="txt">
+        <p data-fr="<b>VESC Dashboard</b> est une interface embarquée qui transforme un smartphone Android ou iOS en combiné numérique pour tout véhicule équipé d'un contrôleur <b>VESC</b>, connecté en Bluetooth. L'objectif : une interface moderne, lisible d'un coup d'œil, pensée pour une utilisation en roulant."
+           data-en="<b>VESC Dashboard</b> is an embedded interface that turns an Android or iOS smartphone into a digital gauge cluster for any vehicle fitted with a <b>VESC</b> controller, connected over Bluetooth. The goal: a modern, glanceable interface designed for use while riding.">
+          <b>VESC Dashboard</b> est une interface embarquée qui transforme un smartphone Android ou iOS en combiné numérique pour tout véhicule équipé d'un contrôleur <b>VESC</b>, connecté en Bluetooth. L'objectif : une interface moderne, lisible d'un coup d'œil, pensée pour une utilisation en roulant.</p>
+        <p data-fr="Le projet évolue version après version — 60 pré-releases au compteur — avec six styles d'affichage au choix, du grand arc lumineux au compteur analogique rétro. L'application s'installe comme une vraie app (PWA) et fonctionne même <b>sans réseau</b>."
+           data-en="The project grows release after release — 60 pre-releases so far — with six display styles to choose from, from the bright arc to the retro analog cluster. The app installs like a real app (PWA) and even works <b>offline</b>.">
+          Le projet évolue version après version — 60 pré-releases au compteur — avec six styles d'affichage au choix, du grand arc lumineux au compteur analogique rétro. L'application s'installe comme une vraie app (PWA) et fonctionne même <b>sans réseau</b>.</p>
+        <p data-fr="Compatible VESC avec module Bluetooth (testé avec Flipsky V6). Sur Android, installez la PWA depuis Chrome ; sur iOS, ouvrez-la dans le navigateur <b>Bluefy</b> qui apporte le Bluetooth web."
+           data-en="Works with any VESC fitted with a Bluetooth module (tested with Flipsky V6). On Android, install the PWA from Chrome; on iOS, open it in the <b>Bluefy</b> browser which brings Web Bluetooth to your device.">
+          Compatible VESC avec module Bluetooth (testé avec Flipsky V6). Sur Android, installez la PWA depuis Chrome ; sur iOS, ouvrez-la dans le navigateur <b>Bluefy</b> qui apporte le Bluetooth web.</p>
+      </div>
+      <div class="card">
+        <h3 data-fr="EN RÉSUMÉ" data-en="IN SHORT">EN RÉSUMÉ</h3>
+        <ul>
+          <li data-fr="Connexion Bluetooth temps réel au VESC" data-en="Real-time Bluetooth link to the VESC">Connexion Bluetooth temps réel au VESC</li>
+          <li data-fr="6 styles d'affichage : Classique, VARG, Flux, Race, Moto, Analog" data-en="6 display styles: Classic, VARG, Flux, Race, Moto, Analog">6 styles d'affichage : Classique, VARG, Flux, Race, Moto, Analog</li>
+          <li data-fr="Cartographie OpenStreetMap & itinéraires" data-en="OpenStreetMap mapping & routes">Cartographie OpenStreetMap &amp; itinéraires</li>
+          <li data-fr="Historique et statistiques de chaque sortie" data-en="History and stats for every ride">Historique et statistiques de chaque sortie</li>
+          <li data-fr="Installation hors ligne (PWA) sur écran d'accueil" data-en="Offline install (PWA) on your home screen">Installation hors ligne (PWA) sur écran d'accueil</li>
+          <li data-fr="Gratuit et open source — HTML/CSS/JS uniquement" data-en="Free and open source — HTML/CSS/JS only">Gratuit et open source — HTML/CSS/JS uniquement</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="fonctionnalites" style="padding-top:24px">
+  <div class="wrap">
+    <div class="kicker" data-fr="Fonctionnalités" data-en="Features">Fonctionnalités</div>
+    <h2>Tout ce qu'il faut, rien de superflu</h2>
+    <div class="grid">
+      <div class="f"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div>
+        <h3 data-fr="Compteur temps réel" data-en="Real-time gauge">Compteur temps réel</h3>
+        <p data-fr="Vitesse, pourcentage et tension batterie, puissance moteur, barre d'accélération — actualisés en continu." data-en="Speed, battery percentage and voltage, motor power, throttle bar — updated continuously.">Vitesse, pourcentage et tension batterie, puissance moteur, barre d'accélération — actualisés en continu.</p></div>
+      <div class="f"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div>
+        <h3 data-fr="Navigation GPS" data-en="GPS navigation">Navigation GPS</h3>
+        <p data-fr="Carte interactive, position en temps réel, recherche de destination et itinéraire guidé." data-en="Interactive map, live position, destination search and turn-by-turn route.">Carte interactive, position en temps réel, recherche de destination et itinéraire guidé.</p></div>
+      <div class="f"><div class="ic"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-6 4 3 5-8"/></svg></div>
+        <h3 data-fr="Historique des balades" data-en="Ride history">Historique des balades</h3>
+        <p data-fr="Chaque sortie enregistrée : distance, vitesse moyenne et max, durée. Consultez vos statistiques." data-en="Every ride logged: distance, average and top speed, duration. Browse your stats.">Chaque sortie enregistrée : distance, vitesse moyenne et max, durée. Consultez vos statistiques.</p></div>
+      <div class="f"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></div>
+        <h3 data-fr="Modes de conduite" data-en="Riding modes">Modes de conduite</h3>
+        <p data-fr="Eco, Sport, Race — profils de performances modifiables directement depuis le tableau de bord." data-en="Eco, Sport, Race — tunable performance profiles, switchable right from the dashboard.">Eco, Sport, Race — profils de performances modifiables directement depuis le tableau de bord.</p></div>
+      <div class="f"><div class="ic"><svg viewBox="0 0 24 24"><path d="M5 12.5A10 10 0 0 1 19 12.5"/><path d="M8.5 15.5a6 6 0 0 1 7 0"/><circle cx="12" cy="18.5" r="1.2"/></svg></div>
+        <h3 data-fr="Installation hors ligne" data-en="Offline install">Installation hors ligne</h3>
+        <p data-fr="PWA installable : l'app se lance depuis l'écran d'accueil et garde ses fonctions essentielles sans réseau." data-en="Installable PWA: launch it from your home screen; core features keep working without a network.">PWA installable : l'app se lance depuis l'écran d'accueil et garde ses fonctions essentielles sans réseau.</p></div>
+      <div class="f"><div class="ic"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18.5h2"/></svg></div>
+        <h3 data-fr="Android & iOS" data-en="Android &amp; iOS">Android &amp; iOS</h3>
+        <p data-fr="PWA sur Android (Chrome) ; sur iOS via le navigateur Bluefy qui apporte le Bluetooth web à Safari." data-en="PWA on Android (Chrome); on iOS via the Bluefy browser, which brings Web Bluetooth to Safari devices.">PWA sur Android (Chrome) ; sur iOS via le navigateur Bluefy qui apporte le Bluetooth web à Safari.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="versions">
+  <div class="wrap">
+    <div class="kicker" data-fr="Versions" data-en="Versions">Versions</div>
+    <h2 data-fr="Toutes les versions" data-en="All versions">Toutes les versions</h2>
+    <p class="lead" data-fr="L'historique complet du projet, du premier prototype d'octobre 2025 à la dernière version. Chaque version reste accessible." data-en="The project's full history, from the first prototype in October 2025 to the latest release. Every version stays accessible.">L'historique complet du projet, du premier prototype d'octobre 2025 à la dernière version. Chaque version reste accessible.</p>
+    <div class="latest">
+      <div class="in">
+        <span class="tag" data-fr="DERNIÈRE" data-en="LATEST">DERNIÈRE</span>
+        <span class="v">V0.70</span>
+        <span class="d" data-fr="Dernière version stable recommandée : assistant de configuration adaptatif, carte GPS en mode Stark et bien plus." data-en="Latest recommended stable release: adaptive setup assistant, Stark-mode GPS map and much more.">Dernière version stable recommandée : assistant de configuration adaptatif, carte GPS en mode Stark et bien plus.</span>
+        <a class="btn p go" href="Pre-Releases/V0.70.html"><span data-fr="Ouvrir" data-en="Open">Ouvrir</span> →</a>
+      </div>
+    </div>
+        <div class="chips">
+    <a class="chip" href="Pre-Releases/V0.01.html" title="V0.01">V0.01</a>
+    <a class="chip" href="Pre-Releases/V0.02.html" title="V0.02">V0.02</a>
+    <a class="chip" href="Pre-Releases/V0.03.html" title="V0.03">V0.03</a>
+    <a class="chip" href="Pre-Releases/V0.04.html" title="V0.04">V0.04</a>
+    <a class="chip" href="Pre-Releases/V0.05.html" title="V0.05">V0.05</a>
+    <a class="chip" href="Pre-Releases/V0.06.html" title="V0.06">V0.06</a>
+    <a class="chip" href="Pre-Releases/V0.07.html" title="V0.07">V0.07</a>
+    <a class="chip" href="Pre-Releases/V0.08.html" title="V0.08">V0.08</a>
+    <a class="chip" href="Pre-Releases/V0.09.html" title="V0.09">V0.09</a>
+    <a class="chip" href="Pre-Releases/V0.10.html" title="V0.10">V0.10</a>
+    <a class="chip" href="Pre-Releases/V0.11.html" title="V0.11">V0.11</a>
+    <a class="chip" href="Pre-Releases/V0.12.html" title="V0.12">V0.12</a>
+    <a class="chip" href="Pre-Releases/V0.13.html" title="V0.13">V0.13</a>
+    <a class="chip" href="Pre-Releases/V0.23.html" title="V0.23">V0.23</a>
+    <a class="chip" href="Pre-Releases/V0.24.html" title="V0.24">V0.24</a>
+    <a class="chip" href="Pre-Releases/V0.25.html" title="V0.25">V0.25</a>
+    <a class="chip" href="Pre-Releases/V0.26.html" title="V0.26">V0.26</a>
+    <a class="chip" href="Pre-Releases/V0.27.html" title="V0.27">V0.27</a>
+    <a class="chip" href="Pre-Releases/V0.28.html" title="V0.28">V0.28</a>
+    <a class="chip" href="Pre-Releases/V0.29.html" title="V0.29">V0.29</a>
+    <a class="chip" href="Pre-Releases/V0.30.html" title="V0.30">V0.30</a>
+    <a class="chip" href="Pre-Releases/V0.31.html" title="V0.31">V0.31</a>
+    <a class="chip" href="Pre-Releases/V0.32.html" title="V0.32">V0.32</a>
+    <a class="chip" href="Pre-Releases/V0.33.html" title="V0.33">V0.33</a>
+    <a class="chip" href="Pre-Releases/V0.34.html" title="V0.34">V0.34</a>
+    <a class="chip" href="Pre-Releases/V0.35.html" title="V0.35">V0.35</a>
+    <a class="chip" href="Pre-Releases/V0.36.html" title="V0.36">V0.36</a>
+    <a class="chip" href="Pre-Releases/V0.37.html" title="V0.37">V0.37</a>
+    <a class="chip" href="Pre-Releases/V0.38.html" title="V0.38">V0.38</a>
+    <a class="chip" href="Pre-Releases/V0.39.html" title="V0.39">V0.39</a>
+    <a class="chip" href="Pre-Releases/V0.40.html" title="V0.40">V0.40</a>
+    <a class="chip" href="Pre-Releases/V0.41.html" title="V0.41">V0.41</a>
+    <a class="chip" href="Pre-Releases/V0.42.html" title="V0.42">V0.42</a>
+    <a class="chip" href="Pre-Releases/V0.43.html" title="V0.43">V0.43</a>
+    <a class="chip" href="Pre-Releases/V0.45.html" title="V0.45">V0.45</a>
+    <a class="chip" href="Pre-Releases/V0.46.html" title="V0.46">V0.46</a>
+    <a class="chip" href="Pre-Releases/V0.47.html" title="V0.47">V0.47</a>
+    <a class="chip" href="Pre-Releases/V0.48.html" title="V0.48">V0.48</a>
+    <a class="chip" href="Pre-Releases/V0.49.html" title="V0.49">V0.49</a>
+    <a class="chip" href="Pre-Releases/V0.50.html" title="V0.50">V0.50</a>
+    <a class="chip" href="Pre-Releases/V0.51.html" title="V0.51">V0.51</a>
+    <a class="chip" href="Pre-Releases/V0.52.html" title="V0.52">V0.52</a>
+    <a class="chip" href="Pre-Releases/V0.53.html" title="V0.53">V0.53</a>
+    <a class="chip" href="Pre-Releases/V0.54.html" title="V0.54">V0.54</a>
+    <a class="chip" href="Pre-Releases/V0.55.html" title="V0.55">V0.55</a>
+    <a class="chip" href="Pre-Releases/V0.56.html" title="V0.56">V0.56</a>
+    <a class="chip" href="Pre-Releases/V0.57.html" title="V0.57">V0.57</a>
+    <a class="chip" href="Pre-Releases/V0.58.html" title="V0.58">V0.58</a>
+    <a class="chip" href="Pre-Releases/V0.59.html" title="V0.59">V0.59</a>
+    <a class="chip" href="Pre-Releases/V0.60.html" title="V0.60">V0.60</a>
+    <a class="chip" href="Pre-Releases/V0.61.html" title="V0.61">V0.61</a>
+    <a class="chip" href="Pre-Releases/V0.62.html" title="V0.62">V0.62</a>
+    <a class="chip" href="Pre-Releases/V0.63.html" title="V0.63">V0.63</a>
+    <a class="chip" href="Pre-Releases/V0.64.html" title="V0.64">V0.64</a>
+    <a class="chip" href="Pre-Releases/V0.65.html" title="V0.65">V0.65</a>
+    <a class="chip hot" href="Pre-Releases/V0.66.html" title="V0.66">V0.66</a>
+    <a class="chip hot" href="Pre-Releases/V0.67.html" title="V0.67">V0.67</a>
+    <a class="chip hot" href="Pre-Releases/V0.68.html" title="V0.68">V0.68</a>
+    <a class="chip hot" href="Pre-Releases/V0.69.html" title="V0.69">V0.69</a>
+    <a class="chip hot" href="Pre-Releases/V0.70.html" title="V0.70"><small>DERNIÈRE</small>V0.70</a>
+    </div>
+    <p class="vnote" data-fr="Astuce : ajoutez la page à votre écran d'accueil pour toujours ouvrir la dernière version installée." data-en="Tip: add the app to your home screen to always open the latest installed version.">Astuce : ajoutez la page à votre écran d'accueil pour toujours ouvrir la dernière version installée.</p>
+  </div>
+</section>
+
+<section id="support" class="support" style="padding-top:24px">
+  <div class="wrap">
+    <div class="kicker" data-fr="Support" data-en="Support">Support</div>
+    <h2 data-fr="Un problème ? Une idée ?" data-en="An issue? An idea?">Un problème ? Une idée ?</h2>
+    <p class="lead" data-fr="Ce projet évolue grâce à vos retours : bug, suggestion, demande de fonctionnalité — écrivez-moi directement sur Discord." data-en="This project evolves thanks to your feedback: bugs, suggestions, feature requests — message me directly on Discord.">Ce projet évolue grâce à vos retours : bug, suggestion, demande de fonctionnalité — écrivez-moi directement sur Discord.</p>
+    <div class="card">
+      <div class="tx">
+        <h3 data-fr="Signaler un problème" data-en="Report an issue">Signaler un problème</h3>
+        <p data-fr="Cliquez ci-dessous : mon pseudo Discord s'affiche, copiez-le puis envoyez-moi un message en décrivant le souci (version, appareil, étapes pour reproduire)." data-en="Click below: my Discord username appears, copy it and message me describing the issue (version, device, steps to reproduce).">Cliquez ci-dessous : mon pseudo Discord s'affiche, copiez-le puis envoyez-moi un message en décrivant le souci (version, appareil, étapes pour reproduire).</p>
+      </div>
+      <button class="btn p dc" onclick="openModal()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.32 4.37a19.8 19.8 0 0 0-4.93-1.51 13.78 13.78 0 0 0-.64 1.28 18.27 18.27 0 0 0-5.5 0 12.64 12.64 0 0 0-.64-1.28h-.05A19.74 19.74 0 0 0 3.64 4.4 20.34 20.34 0 0 0 .1 18.06a19.9 19.9 0 0 0 6.07 3.03 14.55 14.55 0 0 0 1.3-2.1 12.9 12.9 0 0 1-2.05-.98c.17-.12.34-.25.5-.38a14.2 14.2 0 0 0 12.16 0c.17.13.33.26.5.38a12.94 12.94 0 0 1-2.05.98 14.4 14.4 0 0 0 1.3 2.1 19.84 19.84 0 0 0 6.07-3.03 20.29 20.29 0 0 0-3.58-13.69ZM8.02 15.33c-1.18 0-2.16-1.08-2.16-2.42s.95-2.43 2.16-2.43 2.18 1.09 2.16 2.43c0 1.34-.95 2.42-2.16 2.42Zm7.97 0c-1.18 0-2.16-1.08-2.16-2.42s.95-2.43 2.16-2.43 2.18 1.09 2.16 2.43c0 1.33-.96 2.42-2.16 2.42Z"/></svg>
+        <span data-fr="Me contacter sur Discord" data-en="Contact me on Discord">Me contacter sur Discord</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span data-fr="VESC Dashboard — projet personnel de KROSOVO, non affilié à VESC ou Stark Future." data-en="VESC Dashboard — a personal project by KROSOVO, not affiliated with VESC or Stark Future.">VESC Dashboard — projet personnel de KROSOVO, non affilié à VESC ou Stark Future.</span>
+    <span><a href="https://github.com/clementdbs2-del/vesc-dashboard">GitHub</a> · <a href="app/" data-fr="Application" data-en="App">Application</a></span>
+  </div>
+</footer>
+
+<div class="ovl" id="ovl" role="dialog" aria-modal="true" aria-labelledby="mTitle" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="x" onclick="closeModal()" aria-label="Fermer">×</button>
+    <h3 id="mTitle" data-fr="Contact Discord" data-en="Discord contact">Contact Discord</h3>
+    <p data-fr="Pour signaler un problème ou proposer une amélioration, contactez-moi directement sur Discord :" data-en="To report an issue or suggest an improvement, reach out to me directly on Discord:">Pour signaler un problème ou proposer une amélioration, contactez-moi directement sur Discord :</p>
+    <div class="pseudo"><b id="dcName">KROSOVO</b><button id="copyBtn" onclick="copyDc()" data-fr="Copier" data-en="Copy">Copier</button></div>
+    <p class="note" data-fr="Décrivez votre problème avec le plus de détails possible : version utilisée, appareil, ce que vous faisiez et ce qui s'est passé." data-en="Describe your issue in as much detail as possible: version used, device, what you were doing and what happened.">Décrivez votre problème avec le plus de détails possible : version utilisée, appareil, ce que vous faisiez et ce qui s'est passé.</p>
+  </div>
+</div>
+
+<script>
+/* ---------- langues ---------- */
+let lang="fr";
+try{lang=localStorage.getItem("vdLang")||"fr"}catch(e){}
+function setLang(l){
+  lang=l;try{localStorage.setItem("vdLang",l)}catch(e){}
+  document.documentElement.lang=l;
+  document.querySelectorAll("[data-fr]").forEach(el=>{el.innerHTML=el.dataset[l]});
+  $("#langFr").classList.toggle("on",l==="fr");$("#langEn").classList.toggle("on",l==="en");
+}
+const $=s=>document.querySelector(s);
+/* ---------- modal ---------- */
+function openModal(){$("#ovl").classList.add("on")}
+function closeModal(){$("#ovl").classList.remove("on")}
+function copyDc(){
+  const done=()=>{const b=$("#copyBtn"),f=b.dataset[lang];b.textContent=lang==="fr"?"Copié !":"Copied!";setTimeout(()=>b.textContent=f,1600)};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText("KROSOVO").then(done).catch(done);
+  else done();
+}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
+setLang(lang);
+</script>
+</body>
+</html>
