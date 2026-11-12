@@ -68,7 +68,9 @@ Les versions antérieures sont conservées dans le dossier [`Pre-Releases/`](Pre
 
 ## 📱 Interface
 
-Un tableau de bord accessible depuis un navigateur Android.
+Un tableau de bord accessible depuis un navigateur Android ou iOS.
+
+**📱 iOS :** le tableau de bord fonctionne aussi sur iPhone et iPad, mais Safari ne supporte pas le Bluetooth web. Pour la connexion au VESC, utilisez le navigateur [**Bluefy**](https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055) (gratuit sur l'App Store), qui ajoute le Bluetooth Low Energy aux pages web.
 
 L'affichage est optimisé pour :
 
