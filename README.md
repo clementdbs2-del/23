@@ -8,11 +8,13 @@ L'objectif est de proposer une interface moderne, intuitive et adaptée à une u
 
 ## 📱 L'application principale
 
-L'application installable sur Android (PWA) se trouve dans le dossier [`app/`](app/) :
+L'application installable (PWA) se trouve dans le dossier [`app/`](app/) :
 
 👉 [**Ouvrir l'application VESC Dashboard**](https://clementdbs2-del.github.io/vesc-dashboard/app/)
 
-Depuis Chrome Android : `⋮` → **Ajouter à l'écran d'accueil** pour l'installer comme une vraie application (fonctionne hors ligne grâce au cache).
+**🤖 Android :** depuis Chrome, `⋮` → **Ajouter à l'écran d'accueil** pour l'installer comme une vraie application (fonctionne hors ligne grâce au cache).
+
+**🍏 iOS (iPhone / iPad) :** le tableau de bord fonctionne aussi sur iOS, mais Safari ne supporte pas le Bluetooth web. Ouvrez le lien ci-dessus dans le navigateur [**Bluefy**](https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055) (gratuit sur l'App Store) pour la connexion au VESC.
 
 ## 🚀 Dernière version web
 
@@ -68,9 +70,7 @@ Les versions antérieures sont conservées dans le dossier [`Pre-Releases/`](Pre
 
 ## 📱 Interface
 
-Un tableau de bord accessible depuis un navigateur Android ou iOS.
-
-**📱 iOS :** le tableau de bord fonctionne aussi sur iPhone et iPad, mais Safari ne supporte pas le Bluetooth web. Pour la connexion au VESC, utilisez le navigateur [**Bluefy**](https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055) (gratuit sur l'App Store), qui ajoute le Bluetooth Low Energy aux pages web.
+Un tableau de bord accessible depuis un navigateur Android ou iOS (voir [Bluefy](https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055) pour le Bluetooth sur iOS).
 
 L'affichage est optimisé pour :
 
