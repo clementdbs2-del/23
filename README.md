@@ -6,9 +6,9 @@ VESC Dashboard est un projet d'interface embarquée conçu pour transformer un s
 
 L'objectif est de proposer une interface moderne, intuitive et adaptée à une utilisation en roulant.
 
-# 📱 L'application principale
+## 📱 L'application principale
 
-## 🤖 Android — Application (PWA)
+### 🤖 Android — Application (PWA)
 
 L'application installable sur Android (PWA) se trouve dans le dossier [`app/`](app/) :
 
@@ -16,7 +16,7 @@ L'application installable sur Android (PWA) se trouve dans le dossier [`app/`](a
 
 Depuis Chrome : `⋮` → **Ajouter à l'écran d'accueil** pour l'installer comme une vraie application (fonctionne hors ligne grâce au cache).
 
-## 🍏 iOS — Navigateur Bluefy
+### 🍏 iOS — Navigateur Bluefy
 
 Sur iPhone / iPad, Safari ne supporte pas le Bluetooth web. Pour la connexion au VESC, ouvrez l'application dans le navigateur [**Bluefy**](https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055) (gratuit sur l'App Store) :
 
