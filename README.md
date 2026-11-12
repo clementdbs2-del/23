@@ -8,6 +8,8 @@ L'objectif est de proposer une interface moderne, intuitive et adaptée à une u
 
 🌐 [**Page du projet**](https://clementdbs2-del.github.io/vesc-dashboard/) — présentation, toutes les versions et support.
 
+💬 [**Serveur Discord**](https://discord.gg/fyZXHnyAHT) — support, signalement de bugs et suggestions.
+
 ## 📱 L'application principale
 
 ### 🤖 Android — Application (PWA)
