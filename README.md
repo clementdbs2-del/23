@@ -6,7 +6,7 @@ VESC Dashboard est un projet d'interface embarquée conçu pour transformer un s
 
 L'objectif est de proposer une interface moderne, intuitive et adaptée à une utilisation en roulant.
 
-## 📱 L'application principale
+# 📱 L'application principale
 
 ## 🤖 Android — Application (PWA)
 
